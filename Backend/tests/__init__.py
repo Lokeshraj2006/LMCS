@@ -1,0 +1,1 @@
+"""LMCS — Test suite."""
