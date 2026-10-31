@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/pending_complaint_model.dart';
 import '../services/api_service.dart';
+import '../l10n/strings.dart';
 
 /// State for the inspector's "pending complaints" tab (GET /complaints/pending).
 class PendingComplaintsProvider extends ChangeNotifier {
@@ -34,12 +35,12 @@ class PendingComplaintsProvider extends ChangeNotifier {
   String _friendlyError(Object e) {
     final msg = e.toString();
     if (msg.contains('SocketException')) {
-      return 'Backend unreachable — check your network / API URL.';
+      return tr('Backend unreachable — check your network / API URL.');
     }
-    if (msg.contains('401')) return 'Session expired — please sign in again.';
+    if (msg.contains('401')) return tr('Session expired — please sign in again.');
     if (msg.contains('403')) {
-      return 'Access denied — inspector or admin role required.';
+      return tr('Access denied — inspector or admin role required.');
     }
-    return 'Load failed: $msg';
+    return tr('Load failed: {error}', {'error': msg});
   }
 }

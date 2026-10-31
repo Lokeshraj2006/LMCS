@@ -6,6 +6,7 @@ import 'admin/admin_home_screen.dart';
 import 'auth/login_screen.dart';
 import 'consumer/consumer_home_screen.dart';
 import 'inspector/inspector_home_screen.dart';
+import '../l10n/strings.dart';
 
 /// Initial splash screen checking session and routing by RBAC role.
 class SplashScreen extends StatefulWidget {
@@ -92,9 +93,8 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Legal Metrology Compliance System',
-              style: TextStyle(
+            Text(tr('Legal Metrology Compliance System'),
+              style: const TextStyle(
                 fontSize: 14,
                 color: Colors.white70,
               ),

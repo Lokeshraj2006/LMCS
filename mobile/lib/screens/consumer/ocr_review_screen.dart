@@ -12,6 +12,7 @@ import '../../services/ocr_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/printed_elsewhere.dart';
 import 'scan_result_screen.dart';
+import '../../l10n/strings.dart';
 
 /// Review-and-correct step between OCR and submission.
 ///
@@ -145,7 +146,7 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
   /// first read are recorded as edited fields.
   Future<void> _scanAnotherPart() async {
     if (_extraPhotos.length >= _maxExtraPhotos) {
-      _snack('Up to $_maxExtraPhotos extra photos can be sent with one scan.');
+      _snack(tr('Up to {n} extra photos can be sent with one scan.', {'n': _maxExtraPhotos}));
       return;
     }
     final shot = await ImagePicker().pickImage(source: ImageSource.camera);
@@ -194,14 +195,15 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
           applied.addAll(chosen);
         }
       }
-      final names = applied.map((k) => elsewhereFieldLabels[k]!).toList();
+      final names = applied.map((k) => tr(elsewhereFieldLabels[k]!)).toList();
       _snack(applied.isEmpty
-          ? 'No new details read from that photo. It is still sent with the '
-              'scan to look for the veg mark.'
-          : 'From the extra photo: ${joinLabels(names)}. Check they are right.');
+          ? tr('No new details read from that photo. It is still sent with the '
+              'scan to look for the veg mark.')
+          : tr('From the extra photo: {fields}. Check they are right.',
+              {'fields': joinLabels(names)}));
     } catch (_) {
-      _snack('Could not read text on that photo. It is still sent with the '
-          'scan to look for the veg mark.');
+      _snack(tr('Could not read text on that photo. It is still sent with the '
+          'scan to look for the veg mark.'));
     } finally {
       ocr.dispose();
       if (mounted) setState(() => _readingExtraPhoto = false);
@@ -216,16 +218,15 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('The extra photo reads some details differently'),
+          title: Text(tr('The extra photo reads some details differently')),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Tick the ones to take from the extra photo. Check the pack '
-                  'if you are not sure.',
-                  style: TextStyle(fontSize: 13),
+                Text(tr('Tick the ones to take from the extra photo. Check the pack '
+                  'if you are not sure.'),
+                  style: const TextStyle(fontSize: 13),
                 ),
                 for (final e in differ.entries)
                   CheckboxListTile(
@@ -234,9 +235,9 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
                     onChanged: (on) => setDialogState(() {
                       on == true ? chosen.add(e.key) : chosen.remove(e.key);
                     }),
-                    title: Text(_fieldLabels[e.key] ?? e.key),
-                    subtitle: Text(
-                        'Now: ${e.value.current}\nExtra photo: ${e.value.read}'),
+                    title: Text(tr(_fieldLabels[e.key] ?? e.key)),
+                    subtitle: Text(tr('Now: {now}\nExtra photo: {read}',
+                        {'now': e.value.current, 'read': e.value.read})),
                   ),
               ],
             ),
@@ -244,11 +245,11 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(<String>{}),
-              child: const Text('Keep current'),
+              child: Text(tr('Keep current')),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(Set.of(chosen)),
-              child: const Text('Use ticked'),
+              child: Text(tr('Use ticked')),
             ),
           ],
         ),
@@ -334,7 +335,7 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
     if (!mounted) return;
     if (result == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(provider.errorMessage ?? 'Scan failed.')),
+        SnackBar(content: Text(provider.errorMessage ?? tr('Scan failed.'))),
       );
       return;
     }
@@ -356,7 +357,7 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Review Details'),
+        title: Text(tr('Review Details')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
@@ -379,13 +380,13 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
               _printedElsewhereCard(),
               const SizedBox(height: 12),
             ],
-            _sectionHeader('Label details',
+            _sectionHeader(tr('Label details'),
                 'Correct anything OCR misread. Changes are recorded with the scan.'),
             ..._fieldLabels.entries.map(
               (e) => _fieldRow(e.key, e.value),
             ),
             const SizedBox(height: 8),
-            _sectionHeader('Shop / seller', 'Optional — appears on legal notice'),
+            _sectionHeader(tr('Shop / seller'), 'Optional — appears on legal notice'),
             _plainField(_sellerNameCtl, 'Shop name'),
             _plainField(_sellerAddressCtl, 'Shop address', maxLines: 2),
             const SizedBox(height: 8),
@@ -410,7 +411,7 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
                   )
                 : const Icon(Icons.verified),
             label: Text(
-              scan.submitting ? 'Checking compliance…' : 'Check Compliance',
+              scan.submitting ? tr('Checking compliance…') : tr('Check Compliance'),
               style:
                   const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
@@ -437,8 +438,8 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'Rescan of scan #${widget.rescanOfId}. It is saved as a new '
-                'scan; the original stays unchanged.',
+                tr('Rescan of scan #{id}. It is saved as a new scan; the original '
+                    'stays unchanged.', {'id': widget.rescanOfId}),
                 style:
                     const TextStyle(fontSize: 13, color: AppColors.textPrimary),
               ),
@@ -451,13 +452,13 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
 
   Widget _printedElsewhereCard() {
     final missing = _missingKeys;
-    final names = missing.map((k) => elsewhereFieldLabels[k]!).toList();
+    final names = missing.map((k) => tr(elsewhereFieldLabels[k]!)).toList();
     final raw = widget.fields.rawText;
     final datesMissing = missing.contains('mfgDate') || missing.contains('expiryDate');
     final where = (datesMissing ? datesPrintedOn(raw) : null) ??
         (missing.contains('mrp') ? pricePrintedOn(raw) : null);
     final what = joinLabels(names);
-    final title = '${what[0].toUpperCase()}${what.substring(1)} not found';
+    final title = tr('{what} not found', {'what': '${what[0].toUpperCase()}${what.substring(1)}'});
 
     return Card(
       elevation: 0,
@@ -483,18 +484,17 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
             const SizedBox(height: 6),
             Text(
               where != null
-                  ? 'The label says it is printed on the ${where.toUpperCase()}. '
-                      'Please check there.'
-                  : 'Please check whether it is printed somewhere else on the pack. '
+                  ? tr('The label says it is printed on the {place}. Please check there.',
+                      {'place': where.toUpperCase()})
+                  : tr('Please check whether it is printed somewhere else on the pack. '
                       'Common places: the top or lid, the seal, the crimped edge of a '
-                      'pouch, the bottom, or the neck of a bottle.',
+                      'pouch, the bottom, or the neck of a bottle.'),
               style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
             ),
             const SizedBox(height: 4),
-            const Text(
-              'If you find it, type it in below, or photograph that part with '
-              'Scan another part above.',
-              style: TextStyle(fontSize: 13, color: AppColors.textPrimary),
+            Text(tr('If you find it, type it in below, or photograph that part with '
+              'Scan another part above.'),
+              style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
             ),
           ],
         ),
@@ -517,15 +517,14 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Other parts of the pack',
-                style: TextStyle(
+            Text(tr('Other parts of the pack'),
+                style: const TextStyle(
                     fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
             const SizedBox(height: 4),
-            const Text(
-              'Veg mark or details on another side, the lid or the seal? '
+            Text(tr('Veg mark or details on another side, the lid or the seal? '
               'Photograph that part. Blank fields are filled from it, and it is '
-              'sent with the scan to look for the FSSAI veg mark.',
-              style: TextStyle(fontSize: 13, color: AppColors.textPrimary),
+              'sent with the scan to look for the FSSAI veg mark.'),
+              style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
             ),
             if (count > 0) ...[
               const SizedBox(height: 10),
@@ -564,8 +563,9 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                '$count extra photo${count == 1 ? '' : 's'} will be sent with '
-                'the scan.',
+                count == 1
+                    ? tr('1 extra photo will be sent with the scan.')
+                    : tr('{n} extra photos will be sent with the scan.', {'n': count}),
                 style: const TextStyle(
                     fontSize: 12, color: AppColors.textSecondary),
               ),
@@ -583,10 +583,10 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
                     )
                   : const Icon(Icons.add_a_photo_outlined, size: 18),
               label: Text(_readingExtraPhoto
-                  ? 'Reading…'
+                  ? tr('Reading…')
                   : count >= _maxExtraPhotos
-                      ? '$_maxExtraPhotos extra photos added'
-                      : 'Scan another part'),
+                      ? tr('{n} extra photos added', {'n': _maxExtraPhotos})
+                      : tr('Scan another part')),
             ),
           ],
         ),
@@ -615,14 +615,14 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '$detected of ${ExtractedFields.totalFieldCount} fields detected',
+                    tr('{detected} of {total} fields detected',
+                        {'detected': detected, 'total': ExtractedFields.totalFieldCount}),
                     style: TextStyle(
                         fontWeight: FontWeight.bold, color: color),
                   ),
                   const SizedBox(height: 2),
-                  const Text(
-                    'Blank fields are treated as "not declared" by the compliance rules.',
-                    style: TextStyle(
+                  Text(tr('Blank fields are treated as "not declared" by the compliance rules.'),
+                    style: const TextStyle(
                         fontSize: 12, color: AppColors.textSecondary),
                   ),
                 ],
@@ -650,11 +650,11 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Barcode',
-                  style: TextStyle(
+              Text(tr('Barcode'),
+                  style: const TextStyle(
                       fontSize: 12, color: AppColors.textSecondary)),
               Text(
-                widget.barcode ?? 'Not detected',
+                widget.barcode ?? tr('Not detected'),
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   color: widget.barcode == null
@@ -663,13 +663,13 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text('Location',
-                  style: TextStyle(
+              Text(tr('Location'),
+                  style: const TextStyle(
                       fontSize: 12, color: AppColors.textSecondary)),
               Text(
                 (widget.gpsLatitude != null && widget.gpsLongitude != null)
                     ? '${widget.gpsLatitude!.toStringAsFixed(5)}, ${widget.gpsLongitude!.toStringAsFixed(5)}'
-                    : 'Unavailable',
+                    : tr('Unavailable'),
                 style: const TextStyle(fontSize: 13),
               ),
             ],
@@ -685,12 +685,12 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
+          Text(tr(title),
               style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
                   color: AppColors.textPrimary)),
-          Text(subtitle,
+          Text(tr(subtitle),
               style: const TextStyle(
                   fontSize: 12, color: AppColors.textSecondary)),
         ],
@@ -707,11 +707,11 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
         maxLines: key == 'ingredients' || key == 'manufacturerAddress' ? 2 : 1,
         style: const TextStyle(fontSize: 14),
         decoration: InputDecoration(
-          labelText: label,
+          labelText: tr(label),
           isDense: true,
           filled: true,
           fillColor: AppColors.surface,
-          hintText: wasDetected ? null : 'Not detected — type if visible',
+          hintText: wasDetected ? null : tr('Not detected — type if visible'),
           prefixIcon: Icon(
             wasDetected ? Icons.check_circle_outline : Icons.help_outline,
             size: 18,
@@ -735,7 +735,7 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
         maxLines: maxLines,
         style: const TextStyle(fontSize: 14),
         decoration: InputDecoration(
-          labelText: label,
+          labelText: tr(label),
           isDense: true,
           filled: true,
           fillColor: AppColors.surface,
@@ -761,8 +761,8 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
           ListTile(
             dense: true,
             leading: const Icon(Icons.text_snippet_outlined, size: 20),
-            title: const Text('Raw OCR text',
-                style: TextStyle(fontSize: 14)),
+            title: Text(tr('Raw OCR text'),
+                style: const TextStyle(fontSize: 14)),
             trailing: Icon(
                 _showRawText ? Icons.expand_less : Icons.expand_more),
             onTap: () => setState(() => _showRawText = !_showRawText),
@@ -772,7 +772,7 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
               child: SelectableText(
                 widget.fields.rawText.isEmpty
-                    ? '(no text recognised)'
+                    ? tr('(no text recognised)')
                     : widget.fields.rawText,
                 style: const TextStyle(
                     fontSize: 11.5,

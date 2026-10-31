@@ -11,6 +11,8 @@ import '../../utils/app_colors.dart';
 import '../../utils/verdict.dart';
 import '../consumer/scan_capture_screen.dart';
 import 'file_report_screen.dart';
+import '../../l10n/strings.dart';
+import '../../widgets/report_pdf_button.dart';
 
 class InspectionDetailScreen extends StatefulWidget {
   final int evidenceRecordId;
@@ -57,7 +59,7 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
     if (filed == true && mounted) {
       setState(() => _reportFiled = true);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Report sent to the Controller.')),
+        SnackBar(content: Text(tr('Report sent to the Controller.'))),
       );
     }
   }
@@ -77,15 +79,18 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
     final role = context.watch<AuthProvider>().userRole;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Evidence #${widget.evidenceRecordId}'),
+        title: Text(tr('Evidence #{id}', {'id': widget.evidenceRecordId})),
         backgroundColor: Colors.blueGrey.shade900,
         foregroundColor: Colors.white,
         actions: [
           if (_detail != null)
+            ReportPdfButton(
+                evidenceRecordId: widget.evidenceRecordId, color: Colors.white),
+          if (_detail != null)
             TextButton.icon(
               style: TextButton.styleFrom(foregroundColor: Colors.white),
               icon: const Icon(Icons.replay, size: 18),
-              label: const Text('Rescan'),
+              label: Text(tr('Rescan')),
               onPressed: _rescan,
             ),
         ],
@@ -113,7 +118,7 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
         foregroundColor: Colors.white,
         icon: const Icon(Icons.check_circle_outline),
         label: Text(
-          d.violationReportNumber ?? 'Report filed',
+          d.violationReportNumber ?? tr('Report filed'),
           style: const TextStyle(fontSize: 13),
         ),
         onPressed: null,
@@ -130,7 +135,7 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
       backgroundColor: AppColors.potentialViolation,
       foregroundColor: Colors.white,
       icon: const Icon(Icons.gavel),
-      label: Text('File Report ($count)'),
+      label: Text(tr('File Report ({n})', {'n': count})),
       onPressed: _fileReport,
     );
   }
@@ -186,18 +191,18 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Report ${d.violationReportNumber ?? ''} filed',
+                Text(tr('Report {number} filed', {'number': d.violationReportNumber ?? ''}),
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                         color: color)),
                 Text(
                   status == 'pending_admin_confirmation'
-                      ? 'Awaiting the Controller\'s review'
+                      ? tr("Awaiting the Controller's review")
                       : status == 'confirmed'
-                          ? 'Confirmed — notice pending'
+                          ? tr('Confirmed — notice pending')
                           : status == 'notice_generated'
-                              ? 'Legal notice issued'
+                              ? tr('Legal notice issued')
                               : status.replaceAll('_', ' '),
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade800),
                 ),
@@ -235,7 +240,7 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
                   ),
                 ),
               ),
-              Text('${d.failedChecks}/${d.totalChecks} failed',
+              Text(tr('{failed}/{total} failed', {'failed': d.failedChecks, 'total': d.totalChecks}),
                   style: TextStyle(
                       color: Colors.grey.shade700, fontSize: 12)),
             ]),
@@ -266,29 +271,29 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
   Widget _evidenceCard(InspectionDetail d) {
     final e = d.evidence;
     return _section(
-      title: 'Chain of Custody',
+      title: tr('Chain of Custody'),
       icon: Icons.security,
       color: Colors.blueGrey,
       children: [
-        _kv('SHA-256',
+        _kv(tr('SHA-256'),
             e.sha256Hash.isEmpty ? '—' : '${e.sha256Hash.substring(0, 16)}…',
             mono: true),
-        _kv('Captured',
+        _kv(tr('Captured'),
             DateFormat('dd MMM yyyy, HH:mm:ss').format(e.timestampDevice)),
         if (e.timestampNtp != null)
-          _kv('NTP-verified',
+          _kv(tr('NTP-verified'),
               DateFormat('dd MMM yyyy, HH:mm:ss').format(e.timestampNtp!)),
         if (e.ntpDriftSeconds != null)
-          _kv('NTP drift', '${e.ntpDriftSeconds!.toStringAsFixed(3)} s'),
+          _kv(tr('NTP drift'), '${e.ntpDriftSeconds!.toStringAsFixed(3)} s'),
         if (e.gpsLatitude != null && e.gpsLongitude != null)
-          _kv('GPS',
+          _kv(tr('GPS'),
               '${e.gpsLatitude!.toStringAsFixed(6)}, ${e.gpsLongitude!.toStringAsFixed(6)}'),
         if (e.gpsAccuracyMeters != null)
-          _kv('GPS accuracy', '± ${e.gpsAccuracyMeters!.round()} m',
+          _kv(tr('GPS accuracy'), '± ${e.gpsAccuracyMeters!.round()} m',
               valueColor:
                   e.gpsAccuracyMeters! > 100 ? Colors.orange.shade800 : null),
         if (e.isTampered)
-          _kv('Tamper flag', 'YES', valueColor: Colors.red.shade700),
+          _kv(tr('Tamper flag'), tr('YES'), valueColor: Colors.red.shade700),
       ],
     );
   }
@@ -298,18 +303,17 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
   Widget _historyCard(InspectionDetail d) {
     final edited = d.editedFields;
     return _section(
-      title: 'Scan history',
+      title: tr('Scan history'),
       icon: Icons.history,
       color: Colors.blueGrey,
       children: [
-        _kv(
-          'Scanned by',
+        _kv(tr('Scanned by'),
           d.capturedByUsername == null
               ? '—'
               : '${d.capturedByUsername} (${d.capturedByRole ?? '—'})',
         ),
         if (d.complaintNumber != null)
-          _kv('Complaint',
+          _kv(tr('Complaint'),
               '${d.complaintNumber} · ${(d.complaintStatus ?? '').replaceAll('_', ' ')}'),
         if (d.rescanOfId != null) _scanLinks('Rescan of', [d.rescanOfId!]),
         if (d.rescanIds.isNotEmpty) _scanLinks('Rescanned as', d.rescanIds),
@@ -318,13 +322,13 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
         if (d.samePhotoIds.isNotEmpty)
           _scanLinks('Photo re-used in', d.samePhotoIds, warn: true),
         if (edited == null)
-          _kv('Edited fields', 'Not recorded (scanned before edit tracking)')
+          _kv(tr('Edited fields'), tr('Not recorded (scanned before edit tracking)'))
         else if (edited.isEmpty)
-          _kv('Edited fields', 'None — submitted as OCR read it')
+          _kv(tr('Edited fields'), tr('None — submitted as OCR read it'))
         else
           ...edited.map((e) => _kv(
-                'Edited: ${e.label}',
-                '${e.extracted ?? '(blank)'} → ${e.submitted ?? '(blank)'}',
+                tr('Edited: {field}', {'field': tr(e.label)}),
+                '${e.extracted ?? tr('(blank)')} → ${e.submitted ?? tr('(blank)')}',
                 valueColor: Colors.orange.shade800,
               )),
       ],
@@ -340,7 +344,7 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
         children: [
           SizedBox(
             width: 120,
-            child: Text(key,
+            child: Text(tr(key),
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
           ),
           Expanded(
@@ -355,7 +359,7 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
                           ),
                         ),
                         child: Text(
-                          'Scan #$id',
+                          tr('Scan #{id}', {'id': id}),
                           style: TextStyle(
                             fontSize: 12.5,
                             color: color,
@@ -374,14 +378,14 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
   Widget _rulesCard(InspectionDetail d) {
     if (d.ruleChecks.isEmpty) {
       return _section(
-        title: 'Rule Checks',
+        title: tr('Rule Checks'),
         icon: Icons.rule,
         color: Colors.indigo,
-        children: const [Text('No individual rule checks recorded.')],
+        children: [Text(tr('No individual rule checks recorded.'))],
       );
     }
     return _section(
-      title: 'Rule Checks (${d.ruleChecks.length})',
+      title: tr('Rule Checks ({n})', {'n': d.ruleChecks.length}),
       icon: Icons.rule,
       color: Colors.indigo,
       children: d.ruleChecks
@@ -396,7 +400,7 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Rule ${rc.ruleNumber} — ${rc.ruleName}',
+                          Text(tr('Rule {n} — {name}', {'n': rc.ruleNumber, 'name': trRuleName(rc.ruleNumber, rc.ruleName)}),
                               style: const TextStyle(
                                   fontWeight: FontWeight.w600, fontSize: 13)),
                           if (rc.failureReason != null)
@@ -428,25 +432,25 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
   Widget _barcodeCard(InspectionDetail d) {
     final found = d.barcode != null && d.barcode!.isNotEmpty;
     return _section(
-      title: 'Barcode',
+      title: tr('Barcode'),
       icon: Icons.qr_code_scanner,
       color: found ? Colors.indigo : Colors.grey,
-      subtitle: found ? d.barcode! : 'NOT FOUND',
+      subtitle: found ? d.barcode! : tr('NOT FOUND'),
       children: [
-        _kv('Read by', barcodeSourceLabel(d.barcode, d.barcodeSource)),
-        if (!found) _kv('Effect', 'No registry check or font-size measurement for this scan'),
+        _kv(tr('Read by'), tr(barcodeSourceLabel(d.barcode, d.barcodeSource))),
+        if (!found) _kv(tr('Effect'), tr('No registry check or font-size measurement for this scan')),
       ],
     );
   }
 
   Widget _authenticityCard(AuthenticityResultModel a) {
     final subtitle = a.isAuthentic
-        ? 'AUTHENTIC'
+        ? tr('AUTHENTIC')
         : a.isTampered
-            ? 'TAMPERED SUSPECTED'
-            : 'UNVERIFIED';
+            ? tr('TAMPERED SUSPECTED')
+            : tr('UNVERIFIED');
     return _section(
-      title: 'Authenticity',
+      title: tr('Authenticity'),
       icon: Icons.qr_code_2,
       color: a.isAuthentic
           ? Colors.green
@@ -456,13 +460,15 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
       subtitle: subtitle,
       children: [
         if (a.matchedProductName != null)
-          _kv('Registry product', a.matchedProductName!),
-        if (a.message.isNotEmpty) _kv('Note', a.message),
+          _kv(tr('Registry product'), a.matchedProductName!),
+        if (a.message.isNotEmpty) _kv(tr('Note'), a.message),
         if (a.mismatches.isNotEmpty)
           ...a.mismatches.map((m) => _kv(
                 m.field,
-                'expected: ${m.expected ?? '—'}\ndetected: ${m.detected ?? '—'}'
-                '${m.note == null ? '' : '\n${m.note}'}',
+                tr('expected: {expected}\ndetected: {detected}', {
+                  'expected': m.expected ?? '—',
+                  'detected': m.detected ?? '—',
+                }) + (m.note == null ? '' : '\n${m.note}'),
               )),
       ],
     );
@@ -470,12 +476,12 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
 
   Widget _fssaiCard(FssaiMarkModel m) {
     final subtitle = switch (m.status) {
-      'vegetarian' => 'VEGETARIAN',
-      'non_vegetarian' => 'NON-VEGETARIAN',
-      _ => 'NOT DETECTED',
+      'vegetarian' => tr('VEGETARIAN'),
+      'non_vegetarian' => tr('NON-VEGETARIAN'),
+      _ => tr('NOT DETECTED'),
     };
     return _section(
-      title: 'FSSAI mark',
+      title: tr('FSSAI mark'),
       icon: Icons.circle,
       color: m.status == 'vegetarian'
           ? Colors.green
@@ -484,31 +490,31 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
               : Colors.grey,
       subtitle: subtitle,
       children: [
-        if (m.foundOn != null) _kv('Found on', m.foundOn!),
-        if (m.photosChecked > 1) _kv('Photos checked', '${m.photosChecked}'),
+        if (m.foundOn != null) _kv(tr('Found on'), m.foundOn!),
+        if (m.photosChecked > 1) _kv(tr('Photos checked'), '${m.photosChecked}'),
         if (m.photosChecked > 1 && m.status == 'not_found')
-          _kv('Note', m.message),
-        _kv('Confidence', m.confidence.toStringAsFixed(2)),
-        _kv('Green ratio', m.greenPixelRatio.toStringAsFixed(3)),
-        _kv('Red ratio', m.redPixelRatio.toStringAsFixed(3)),
+          _kv(tr('Note'), m.message),
+        _kv(tr('Confidence'), m.confidence.toStringAsFixed(2)),
+        _kv(tr('Green ratio'), m.greenPixelRatio.toStringAsFixed(3)),
+        _kv(tr('Red ratio'), m.redPixelRatio.toStringAsFixed(3)),
       ],
     );
   }
 
   Widget _gstinCard(GstinModel g) {
     return _section(
-      title: 'GSTIN check',
+      title: tr('GSTIN check'),
       icon: Icons.receipt_long,
       color: g.status.toUpperCase() == 'PASS'
           ? Colors.green
           : g.status.toUpperCase() == 'FAIL'
               ? Colors.red
               : Colors.grey,
-      subtitle: g.status.toUpperCase(),
+      subtitle: trCheckStatus(g.status),
       children: [
-        if (g.detectedValue != null) _kv('Detected', g.detectedValue!),
-        if (g.failureReason != null) _kv('Reason', g.failureReason!),
-        _kv('Scope', g.note),
+        if (g.detectedValue != null) _kv(tr('Detected'), g.detectedValue!),
+        if (g.failureReason != null) _kv(tr('Reason'), g.failureReason!),
+        _kv(tr('Scope'), g.note),
       ],
     );
   }
@@ -593,7 +599,7 @@ class _InspectionDetailScreenState extends State<InspectionDetailScreen> {
         border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
       child: Text(
-        status.toUpperCase(),
+        trCheckStatus(status),
         style: TextStyle(
             color: color,
             fontSize: 10.5,

@@ -239,6 +239,28 @@ class ApiService {
     return (bytes: bytes, filename: filename);
   }
 
+  // ─── Scan summary PDF (anyone who may view the scan) ───────────────────
+
+  /// GET /inspections/{id}/summary.pdf?lang=en|ta
+  ///
+  /// A one-page record of the scan in English or Tamil. Same access rule as
+  /// the scan detail; it is not the Controller's report or a notice.
+  Future<({List<int> bytes, String filename})> downloadScanSummary(
+      int evidenceRecordId, String lang) async {
+    final response = await _dio.get<List<int>>(
+      '/inspections/$evidenceRecordId/summary.pdf',
+      queryParameters: {'lang': lang},
+      options: Options(
+        responseType: ResponseType.bytes,
+        headers: {'Accept': 'application/pdf'},
+      ),
+    );
+    return (
+      bytes: response.data ?? const <int>[],
+      filename: 'LMCS_scan_${evidenceRecordId}_$lang.pdf',
+    );
+  }
+
   // ─── Legacy endpoints — retained for backward compatibility ────────────
 
   /// POST /evidence/upload — pre-item-7 evidence upload path.

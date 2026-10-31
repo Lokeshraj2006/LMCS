@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../providers/pending_complaints_provider.dart';
 import 'inspection_detail_screen.dart';
+import '../../l10n/strings.dart';
 
 class PendingComplaintsScreen extends StatefulWidget {
   const PendingComplaintsScreen({super.key});
@@ -42,7 +43,7 @@ class _PendingComplaintsScreenState extends State<PendingComplaintsScreen> {
               const SizedBox(height: 12),
               FilledButton.icon(
                 icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
+                label: Text(tr('Retry')),
                 onPressed: () => provider.refresh(),
               ),
             ],
@@ -51,22 +52,21 @@ class _PendingComplaintsScreenState extends State<PendingComplaintsScreen> {
       );
     }
     if (provider.rows.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.mark_email_read_outlined,
+              const Icon(Icons.mark_email_read_outlined,
                   size: 60, color: Colors.grey),
-              SizedBox(height: 12),
-              Text('No complaints awaiting review.',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              SizedBox(height: 4),
-              Text(
-                'When a consumer scan flags action_needed, it will appear here.',
+              const SizedBox(height: 12),
+              Text(tr('No complaints awaiting review.'),
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text(tr('When a consumer scan flags action_needed, it will appear here.'),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
           ),
@@ -95,13 +95,13 @@ class _PendingComplaintsScreenState extends State<PendingComplaintsScreen> {
                     style: TextStyle(
                         fontSize: 10, color: Colors.orange.shade800)),
               ),
-              title: Text(row.productName ?? 'Unknown product',
+              title: Text(row.productName ?? tr('Unknown product'),
                   style: const TextStyle(fontWeight: FontWeight.w600)),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Filed ${DateFormat('dd MMM yyyy, HH:mm').format(row.filedAt)}',
+                    tr('Filed {when}', {'when': DateFormat('dd MMM yyyy, HH:mm').format(row.filedAt)}),
                     style: const TextStyle(fontSize: 12),
                   ),
                   if (row.actionReason != null)

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import '../l10n/strings.dart';
 
 /// What to tell the user when a login fails. The server locks an account
 /// out for a while after repeated wrong passwords (429); that, and an
@@ -11,15 +12,15 @@ String loginErrorMessage(Object error) {
   if (error is DioException) {
     final response = error.response;
     if (response == null) {
-      return "Can't reach the server. Check the backend address in Settings.";
+      return tr("Can't reach the server. Check the backend address in Settings.");
     }
     if (response.statusCode == 429) {
       final data = response.data;
       if (data is Map && data['detail'] is String) return data['detail'] as String;
-      return 'Too many failed logins. Try again later.';
+      return tr('Too many failed logins. Try again later.');
     }
   }
-  return 'Invalid username/email or password';
+  return tr('Invalid username/email or password');
 }
 
 /// Authentication state provider managing user session, role, and tokens.

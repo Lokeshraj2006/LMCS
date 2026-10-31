@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/scan_models.dart';
 import '../services/api_service.dart';
+import '../l10n/strings.dart';
 
 /// State for the consumer scan flow — submits an image + context blob to
 /// POST /scan and holds the returned verdict for the result screen.
@@ -52,10 +53,10 @@ class ScanProvider extends ChangeNotifier {
   String _friendlyError(Object e) {
     final msg = e.toString();
     if (msg.contains('SocketException') || msg.contains('Failed host')) {
-      return 'Could not reach backend — is the API running?';
+      return tr('Could not reach backend — is the API running?');
     }
-    if (msg.contains('401')) return 'Session expired — please sign in again.';
-    if (msg.contains('422')) return 'Scan payload rejected by the server.';
-    return 'Scan failed: $msg';
+    if (msg.contains('401')) return tr('Session expired — please sign in again.');
+    if (msg.contains('422')) return tr('Scan payload rejected by the server.');
+    return tr('Scan failed: {error}', {'error': msg});
   }
 }

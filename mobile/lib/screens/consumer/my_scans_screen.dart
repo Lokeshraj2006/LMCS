@@ -6,6 +6,7 @@ import '../../services/api_service.dart';
 import '../../utils/verdict.dart';
 import '../../widgets/scan_flags.dart';
 import '../inspector/inspection_detail_screen.dart';
+import '../../l10n/strings.dart';
 
 /// The signed-in user's own scans, newest first: verdict, what happened to
 /// the complaint, and audit flags. Read-only — a scan can be rescanned from
@@ -41,8 +42,8 @@ class _MyScansScreenState extends State<MyScansScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = e.toString().contains('401')
-          ? 'Session expired — please sign in again.'
-          : 'Could not load your scans. Check the backend connection.');
+          ? tr('Session expired — please sign in again.')
+          : tr('Could not load your scans. Check the backend connection.'));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -52,7 +53,7 @@ class _MyScansScreenState extends State<MyScansScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My scans'),
+        title: Text(tr('My scans')),
         backgroundColor: Colors.indigo.shade700,
         foregroundColor: Colors.white,
         actions: [
@@ -79,7 +80,7 @@ class _MyScansScreenState extends State<MyScansScreen> {
       );
     }
     if (_rows.isEmpty) {
-      return const Center(child: Text('You have no scans yet.'));
+      return Center(child: Text(tr('You have no scans yet.')));
     }
     return RefreshIndicator(
       onRefresh: _load,
@@ -103,14 +104,14 @@ class _MyScansScreenState extends State<MyScansScreen> {
       child: ListTile(
         leading: Icon(Verdict.icon(row.overallStatus), color: color),
         title: Text(
-          row.productName ?? 'Scan #${row.evidenceRecordId}',
+          row.productName ?? tr('Scan #{id}', {'id': row.evidenceRecordId}),
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Scan #${row.evidenceRecordId} • '
+              '${tr('Scan #{id}', {'id': row.evidenceRecordId})} • '
               '${DateFormat('dd MMM yyyy, HH:mm').format(row.timestamp)}',
               style: const TextStyle(fontSize: 12),
             ),

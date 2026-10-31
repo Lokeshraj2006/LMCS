@@ -6,6 +6,7 @@ import '../../models/scan_models.dart';
 import '../../models/violation_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
+import '../../l10n/strings.dart';
 
 /// Inspector files a formal violation report from a scan.
 ///
@@ -98,29 +99,29 @@ class _FileReportScreenState extends State<FileReportScreen> {
       }
       if (e.type == DioExceptionType.connectionError ||
           e.type == DioExceptionType.connectionTimeout) {
-        return 'Could not reach the backend. Check the address in Settings.';
+        return tr('Could not reach the backend. Check the address in Settings.');
       }
     }
 
     final text = detail ?? e.toString();
 
     if (text.contains('already open')) {
-      return 'A report has already been filed for this scan. The Controller '
-          'is reviewing it — check the dashboard for its status.';
+      return tr('A report has already been filed for this scan. The Controller '
+          'is reviewing it — check the dashboard for its status.');
     }
     if (text.contains('No failed rule checks')) {
       return _grounds.isEmpty
-          ? 'This scan has no failed checks, so there is nothing to report.'
-          : 'Tick "I checked the pack myself" to cite the registry mismatch.';
+          ? tr('This scan has no failed checks, so there is nothing to report.')
+          : tr('Tick "I checked the pack myself" to cite the registry mismatch.');
     }
     if (text.contains('checked the pack yourself')) {
-      return 'Tick "I checked the pack myself" to cite the registry mismatch.';
+      return tr('Tick "I checked the pack myself" to cite the registry mismatch.');
     }
     if (status == 403) {
-      return 'Only inspectors and admins can file reports.';
+      return tr('Only inspectors and admins can file reports.');
     }
     // Prefer the backend's own wording; it is written for a human reader.
-    return detail ?? 'Could not file the report: $e';
+    return detail ?? tr('Could not file the report: {error}', {'error': e});
   }
 
   @override
@@ -131,7 +132,7 @@ class _FileReportScreenState extends State<FileReportScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('File Violation Report'),
+        title: Text(tr('File Violation Report')),
         backgroundColor: AppColors.inspectorPrimary,
         foregroundColor: Colors.white,
       ),
@@ -169,8 +170,8 @@ class _FileReportScreenState extends State<FileReportScreen> {
             decoration: _dec(
               'Inspector notes',
               Icons.edit_note,
-              hint: 'e.g. Stock offered for sale past best-before date. '
-                  'MRP sticker overwritten.',
+              hint: tr('e.g. Stock offered for sale past best-before date. '
+                  'MRP sticker overwritten.'),
             ),
           ),
           const SizedBox(height: 14),
@@ -186,10 +187,9 @@ class _FileReportScreenState extends State<FileReportScreen> {
               const Icon(Icons.gavel, size: 18, color: AppColors.primary),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  'This report goes to the Controller for review. Only the '
+                child: Text(tr('This report goes to the Controller for review. Only the '
                   'Controller can issue a legal notice to the manufacturer '
-                  'and shop.',
+                  'and shop.'),
                   style: TextStyle(
                       fontSize: 12, color: Colors.grey.shade800, height: 1.35),
                 ),
@@ -197,8 +197,13 @@ class _FileReportScreenState extends State<FileReportScreen> {
             ]),
           ),
           const SizedBox(height: 8),
-          Text('Evidence #${d.evidenceRecordId} · SHA-256 '
-              '${d.evidence.sha256Hash.isEmpty ? "—" : "${d.evidence.sha256Hash.substring(0, 16)}…"}',
+          Text(
+              tr('Evidence #{id} · SHA-256 {hash}', {
+                'id': d.evidenceRecordId,
+                'hash': d.evidence.sha256Hash.isEmpty
+                    ? '—'
+                    : '${d.evidence.sha256Hash.substring(0, 16)}…',
+              }),
               style: const TextStyle(
                   fontSize: 11, color: AppColors.textSecondary)),
         ],
@@ -221,11 +226,12 @@ class _FileReportScreenState extends State<FileReportScreen> {
                 : const Icon(Icons.send),
             label: Text(
               _submitting
-                  ? 'Filing…'
+                  ? tr('Filing…')
                   : _citedCount == 0 && _grounds.isNotEmpty
-                      ? 'Check the pack first'
-                      : 'File report ($_citedCount violation'
-                          '${_citedCount == 1 ? '' : 's'})',
+                      ? tr('Check the pack first')
+                      : _citedCount == 1
+                          ? tr('File report (1 violation)')
+                          : tr('File report ({n} violations)', {'n': _citedCount}),
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
             onPressed: _submitting || _citedCount == 0 ? null : _submit,
@@ -238,7 +244,7 @@ class _FileReportScreenState extends State<FileReportScreen> {
   // ── Pieces ───────────────────────────────────────────────────────────
   InputDecoration _dec(String label, IconData icon, {String? hint}) =>
       InputDecoration(
-        labelText: label,
+        labelText: tr(label),
         hintText: hint,
         isDense: true,
         filled: true,
@@ -253,10 +259,10 @@ class _FileReportScreenState extends State<FileReportScreen> {
   Widget _sectionLabel(String title, String subtitle) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title,
+          Text(tr(title),
               style:
                   const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-          Text(subtitle,
+          Text(tr(subtitle),
               style: const TextStyle(
                   fontSize: 11.5, color: AppColors.textSecondary)),
         ]),
@@ -305,8 +311,8 @@ class _FileReportScreenState extends State<FileReportScreen> {
             const SizedBox(width: 8),
             Text(
               failed.isEmpty
-                  ? 'No failed checks on this scan'
-                  : 'Rules to be cited (${failed.length})',
+                  ? tr('No failed checks on this scan')
+                  : tr('Rules to be cited ({n})', {'n': failed.length}),
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
           ]),
@@ -314,12 +320,12 @@ class _FileReportScreenState extends State<FileReportScreen> {
           if (failed.isEmpty)
             Text(
               _grounds.isEmpty
-                  ? 'Every check passed or needs manual review, so there is '
+                  ? tr('Every check passed or needs manual review, so there is '
                       'nothing to escalate. Reports can only cite failed checks '
-                      'or a registry mismatch.'
-                  : 'Every check passed or needs manual review. The registry '
+                      'or a registry mismatch.')
+                  : tr('Every check passed or needs manual review. The registry '
                       'mismatch below can still be cited once you have checked '
-                      'the pack.',
+                      'the pack.'),
               style:
                   const TextStyle(fontSize: 12, color: AppColors.textSecondary),
             )
@@ -341,7 +347,7 @@ class _FileReportScreenState extends State<FileReportScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(rc.ruleName,
+                            Text(trRuleName(rc.ruleNumber, rc.ruleName),
                                 style: const TextStyle(
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.w600)),
@@ -383,12 +389,12 @@ class _FileReportScreenState extends State<FileReportScreen> {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Row(children: [
-            Icon(Icons.qr_code_2, size: 19, color: AppColors.potentialViolation),
-            SizedBox(width: 8),
+          Row(children: [
+            const Icon(Icons.qr_code_2, size: 19, color: AppColors.potentialViolation),
+            const SizedBox(width: 8),
             Expanded(
-              child: Text('Registry mismatch · Rule 6(3)',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              child: Text(tr('Registry mismatch · Rule 6(3)'),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
             ),
           ]),
           const SizedBox(height: 6),
@@ -407,12 +413,14 @@ class _FileReportScreenState extends State<FileReportScreen> {
                       child: Text.rich(
                         TextSpan(children: [
                           TextSpan(
-                              text: '${m.label}: ',
+                              text: '${tr(m.label)}: ',
                               style:
                                   const TextStyle(fontWeight: FontWeight.w600)),
                           TextSpan(
-                              text: 'label shows ${m.detected ?? '—'}, '
-                                  'registered ${m.expected ?? '—'}'),
+                              text: tr('label shows {detected}, registered {expected}', {
+                                'detected': m.detected ?? '—',
+                                'expected': m.expected ?? '—',
+                              })),
                         ]),
                         style: const TextStyle(fontSize: 12.5),
                       ),
@@ -421,11 +429,10 @@ class _FileReportScreenState extends State<FileReportScreen> {
                 ),
               )),
           const SizedBox(height: 6),
-          Text(
-            'Rule 6(3) forbids altering a declaration on the pack. The only '
+          Text(tr('Rule 6(3) forbids altering a declaration on the pack. The only '
             'exception is a sticker that lowers the MRP, so a lower MRP is '
             'never listed here. A misread photo can look the same, so compare '
-            'the pack in your hand with the registered details.',
+            'the pack in your hand with the registered details.'),
             style: TextStyle(
                 fontSize: 11.5, color: Colors.grey.shade700, height: 1.35),
           ),
@@ -441,10 +448,10 @@ class _FileReportScreenState extends State<FileReportScreen> {
                       _packChecked = v ?? false;
                       _error = null;
                     }),
-            title: const Text(
-              "I checked the pack myself and it doesn't match the registered "
-              'details',
-              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+            title: Text(
+              tr("I checked the pack myself and it doesn't match the registered "
+                  'details'),
+              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
             ),
           ),
         ]),
@@ -456,7 +463,7 @@ class _FileReportScreenState extends State<FileReportScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Report Filed'),
+        title: Text(tr('Report Filed')),
         backgroundColor: AppColors.compliant,
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
@@ -479,7 +486,7 @@ class _FileReportScreenState extends State<FileReportScreen> {
           ),
           const SizedBox(height: 6),
           Center(
-            child: Text('Sent to the Controller for review',
+            child: Text(tr('Sent to the Controller for review'),
                 style: TextStyle(
                     fontSize: 13, color: Colors.grey.shade700)),
           ),
@@ -493,12 +500,12 @@ class _FileReportScreenState extends State<FileReportScreen> {
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Column(children: [
-                _kv('Status', r.statusLabel),
-                _kv('Severity', r.severity.toUpperCase()),
-                _kv('Rules cited', '${r.violatedRuleCount}'),
-                if (r.shopName != null) _kv('Shop', r.shopName!),
+                _kv(tr('Status'), tr(r.statusLabel)),
+                _kv(tr('Severity'), r.severity.toUpperCase()),
+                _kv(tr('Rules cited'), '${r.violatedRuleCount}'),
+                if (r.shopName != null) _kv(tr('Shop'), r.shopName!),
                 if (r.inspectorBadge != null)
-                  _kv('Filed by', '${r.inspectorName} (${r.inspectorBadge})'),
+                  _kv(tr('Filed by'), '${r.inspectorName} (${r.inspectorBadge})'),
               ]),
             ),
           ),
@@ -514,10 +521,9 @@ class _FileReportScreenState extends State<FileReportScreen> {
               const Icon(Icons.hourglass_top, size: 19, color: AppColors.review),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  'The Controller will confirm or reject these findings. If '
+                child: Text(tr('The Controller will confirm or reject these findings. If '
                   'confirmed, a legal notice is issued to the manufacturer '
-                  'and shop.',
+                  'and shop.'),
                   style: TextStyle(
                       fontSize: 12, height: 1.35, color: Colors.grey.shade800),
                 ),
@@ -531,7 +537,7 @@ class _FileReportScreenState extends State<FileReportScreen> {
               backgroundColor: AppColors.inspectorPrimary,
             ),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Done'),
+            child: Text(tr('Done')),
           ),
         ],
       ),

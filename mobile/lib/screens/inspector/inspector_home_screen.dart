@@ -10,6 +10,8 @@ import '../settings_screen.dart';
 import 'inspection_map_screen.dart';
 import 'inspections_log_screen.dart';
 import 'pending_complaints_screen.dart';
+import '../../l10n/strings.dart';
+import '../../widgets/language_toggle.dart';
 
 class InspectorHomeScreen extends StatefulWidget {
   const InspectorHomeScreen({super.key});
@@ -43,10 +45,10 @@ class _InspectorHomeScreenState extends State<InspectorHomeScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Inspector Portal', style: TextStyle(fontSize: 18)),
+            Text(tr('Inspector Portal'), style: const TextStyle(fontSize: 18)),
             if (user?.badgeNumber != null)
               Text(
-                'Badge: ${user!.badgeNumber}',
+                tr('Badge: {badge}', {'badge': user!.badgeNumber}),
                 style: const TextStyle(fontSize: 11, color: Colors.white70),
               ),
           ],
@@ -54,9 +56,10 @@ class _InspectorHomeScreenState extends State<InspectorHomeScreen> {
         backgroundColor: Colors.blueGrey.shade900,
         foregroundColor: Colors.white,
         actions: [
+          const LanguageToggle(color: Colors.white),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
-            tooltip: 'Backend settings',
+            tooltip: tr('Backend settings'),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const SettingsScreen()),
             ),
@@ -87,7 +90,7 @@ class _InspectorHomeScreenState extends State<InspectorHomeScreen> {
         backgroundColor: Colors.blueGrey.shade900,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.document_scanner_outlined),
-        label: const Text('New scan'),
+        label: Text(tr('New scan')),
       ),
       bottomNavigationBar: BottomNavigationBar(
         // Fixed: with 3+ items the default 'shifting' type hides labels.
@@ -97,22 +100,22 @@ class _InspectorHomeScreenState extends State<InspectorHomeScreen> {
         selectedItemColor: Colors.blueGrey.shade900,
         unselectedItemColor: Colors.grey.shade600,
         items: [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.assignment_outlined),
-            activeIcon: Icon(Icons.assignment),
-            label: 'Inspections',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.assignment_outlined),
+            activeIcon: const Icon(Icons.assignment),
+            label: tr('Inspections'),
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.map_outlined),
-            activeIcon: Icon(Icons.map),
-            label: 'Map',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.map_outlined),
+            activeIcon: const Icon(Icons.map),
+            label: tr('Map'),
           ),
           BottomNavigationBarItem(
             icon: _pendingBadge(pending.pendingCount,
                 const Icon(Icons.pending_actions_outlined)),
             activeIcon: _pendingBadge(pending.pendingCount,
                 const Icon(Icons.pending_actions)),
-            label: 'Pending',
+            label: tr('Pending'),
           ),
         ],
       ),

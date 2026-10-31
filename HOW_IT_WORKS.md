@@ -17,6 +17,13 @@ The checks, the verdicts and the limits, in detail. Back to the [README](README.
 - **Result**: Compliant, Needs review or Action needed, with all 13 checks and
   their reasons, the registry result, who read the barcode, the veg mark, and
   the complaint number if one was filed.
+- **Report (PDF)**: a one-page scan summary (verdict, the 13 checks and the
+  evidence fingerprint) made in the language the app is set to. Long-press
+  for the other language. It is a record of the scan, not the Controller's
+  report or a notice, and says so on the page.
+- **Tamil or English**: one tap on தமிழ் / English switches every screen, and
+  the choice is remembered. The checks' detailed reasons come from the
+  server in English.
 - **Consumers** see only their own scans.
 - **Inspectors** get the pending complaints (as a list and on a map), the full
   scan history, their own new scans, and a report form. A registry mismatch

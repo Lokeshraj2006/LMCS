@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/strings.dart';
 
 /// Pill badge for compliance and rule check verdicts.
 class StatusBadge extends StatelessWidget {
@@ -22,29 +23,29 @@ class StatusBadge extends StatelessWidget {
       case 'COMPLIANT':
         bg = Colors.green.shade50;
         fg = Colors.green.shade700;
-        label = 'COMPLIANT';
+        label = tr('COMPLIANT');
         break;
       case 'FAIL':
       case 'VIOLATION':
         bg = Colors.red.shade50;
         fg = Colors.red.shade700;
-        label = 'VIOLATION';
+        label = tr('VIOLATION');
         break;
       case 'REVIEW':
       case 'REVIEW_NEEDED':
         bg = Colors.amber.shade50;
         fg = Colors.amber.shade800;
-        label = 'REVIEW';
+        label = tr('REVIEW');
         break;
       case 'NEEDS_REVIEW':
         bg = Colors.amber.shade50;
         fg = Colors.amber.shade800;
-        label = 'NEEDS REVIEW';
+        label = tr('NEEDS REVIEW');
         break;
       case 'EXEMPT':
         bg = Colors.blue.shade50;
         fg = Colors.blue.shade700;
-        label = 'EXEMPT';
+        label = tr('EXEMPT');
         break;
       default:
         bg = Colors.grey.shade100;

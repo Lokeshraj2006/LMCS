@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/strings.dart';
 
 /// Guide overlay outlining the target packaging area, ensuring
 /// both the barcode reference anchor and printed text are framed.
@@ -69,14 +70,13 @@ class CameraOverlay extends StatelessWidget {
                         color: Colors.black54,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.qr_code_scanner, color: Colors.amber, size: 16),
-                          SizedBox(width: 6),
-                          Text(
-                            'Align Barcode & Printed Label Inside',
-                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          const Icon(Icons.qr_code_scanner, color: Colors.amber, size: 16),
+                          const SizedBox(width: 6),
+                          Text(tr('Align Barcode & Printed Label Inside'),
+                            style: const TextStyle(color: Colors.white, fontSize: 12),
                           ),
                         ],
                       ),
@@ -90,9 +90,8 @@ class CameraOverlay extends StatelessWidget {
                         color: Colors.black54,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text(
-                        'Keep camera perpendicular & well-lit',
-                        style: TextStyle(color: Colors.white70, fontSize: 11),
+                      child: Text(tr('Keep camera perpendicular & well-lit'),
+                        style: const TextStyle(color: Colors.white70, fontSize: 11),
                       ),
                     ),
                   ],

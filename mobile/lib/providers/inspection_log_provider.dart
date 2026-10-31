@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/inspection_log_models.dart';
 import '../services/api_service.dart';
+import '../l10n/strings.dart';
 
 /// State for the inspector dashboard — fetches GET /inspections/log rows and
 /// per-record detail from GET /inspections/{id}.
@@ -66,12 +67,12 @@ class InspectionLogProvider extends ChangeNotifier {
   String _friendlyError(Object e) {
     final msg = e.toString();
     if (msg.contains('SocketException') || msg.contains('Failed host')) {
-      return 'Backend unreachable — check your network / API URL.';
+      return tr('Backend unreachable — check your network / API URL.');
     }
-    if (msg.contains('401')) return 'Session expired — please sign in again.';
+    if (msg.contains('401')) return tr('Session expired — please sign in again.');
     if (msg.contains('403')) {
-      return 'Access denied — inspector or admin role required.';
+      return tr('Access denied — inspector or admin role required.');
     }
-    return 'Load failed: $msg';
+    return tr('Load failed: {error}', {'error': msg});
   }
 }

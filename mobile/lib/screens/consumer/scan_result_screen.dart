@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../models/scan_models.dart';
 import '../../utils/verdict.dart';
+import '../../l10n/strings.dart';
+import '../../widgets/report_pdf_button.dart';
 
 /// Full verdict view shown after a consumer scan submission.
 class ScanResultScreen extends StatelessWidget {
@@ -22,9 +24,13 @@ class ScanResultScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scan Result'),
+        title: Text(tr('Scan Result')),
         backgroundColor: _accent,
         foregroundColor: Colors.white,
+        actions: [
+          ReportPdfButton(
+              evidenceRecordId: result.evidenceRecordId, color: Colors.white),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -51,7 +57,7 @@ class ScanResultScreen extends StatelessWidget {
               backgroundColor: _accent,
             ),
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Done'),
+            child: Text(tr('Done')),
           ),
         ),
       ),
@@ -100,7 +106,7 @@ class ScanResultScreen extends StatelessWidget {
             ],
             if (result.lawReference != null) ...[
               const SizedBox(height: 8),
-              Text('Reference: ${result.lawReference}',
+              Text(tr('Reference: {ref}', {'ref': result.lawReference}),
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey.shade700,
@@ -138,15 +144,14 @@ class ScanResultScreen extends StatelessWidget {
       child: ListTile(
         leading: const Icon(Icons.notifications_active, color: Colors.orange),
         title: Text(result.complaintLinked
-            ? 'Added to your open complaint'
-            : 'Reported to Inspector'),
+            ? tr('Added to your open complaint')
+            : tr('Reported to Inspector')),
         subtitle: Text(
           result.complaintLinked
-              ? 'This scan joined complaint '
-                  '${result.complaintNumber ?? '#${result.complaintId}'} '
-                  'instead of opening a new one.'
-              : 'Complaint ${result.complaintNumber ?? '#${result.complaintId}'} '
-                  'has been forwarded for review.',
+              ? tr('This scan joined complaint {number} instead of opening a new one.',
+                  {'number': result.complaintNumber ?? '#${result.complaintId}'})
+              : tr('Complaint {number} has been forwarded for review.',
+                  {'number': result.complaintNumber ?? '#${result.complaintId}'}),
         ),
       ),
     );
@@ -160,18 +165,17 @@ class ScanResultScreen extends StatelessWidget {
   Widget _auditCard() {
     return _sectionCard(
       icon: Icons.history,
-      title: 'On the record',
-      subtitle: 'Scan #${result.evidenceRecordId}',
+      title: tr('On the record'),
+      subtitle: tr('Scan #{id}', {'id': result.evidenceRecordId}),
       color: Colors.blueGrey,
       children: [
         if (result.rescanOfId != null)
-          _kv('Rescan of', 'Scan #${result.rescanOfId}, which stays unchanged'),
+          _kv(tr('Rescan of'), tr('Scan #{id}, which stays unchanged', {'id': result.rescanOfId})),
         if (result.duplicateOfId != null)
-          _kv('Same photo as',
-              'Scan #${result.duplicateOfId}. A re-used photo is not new evidence.'),
-        ...?result.editedFields?.map((e) => _kv(
-              'You changed',
-              '${e.label}: ${e.extracted ?? '(blank)'} → ${e.submitted ?? '(blank)'}',
+          _kv(tr('Same photo as'),
+              tr('Scan #{id}. A re-used photo is not new evidence.', {'id': result.duplicateOfId})),
+        ...?result.editedFields?.map((e) => _kv(tr('You changed'),
+              '${tr(e.label)}: ${e.extracted ?? tr('(blank)')} → ${e.submitted ?? tr('(blank)')}',
             )),
       ],
     );
@@ -183,25 +187,25 @@ class ScanResultScreen extends StatelessWidget {
     final found = result.barcode != null && result.barcode!.isNotEmpty;
     return _sectionCard(
       icon: Icons.qr_code_scanner,
-      title: 'Barcode',
-      subtitle: found ? result.barcode! : 'Not found',
+      title: tr('Barcode'),
+      subtitle: found ? result.barcode! : tr('Not found'),
       color: found ? Colors.indigo : Colors.grey.shade700,
       children: [
-        _kv('Read by', barcodeSourceLabel(result.barcode, result.barcodeSource)),
+        _kv(tr('Read by'), tr(barcodeSourceLabel(result.barcode, result.barcodeSource))),
         if (!found)
-          _kv('Effect',
-              'No registry check or font-size measurement for this scan. '
-              'Hold the pack flat and close, with the barcode in focus.'),
+          _kv(tr('Effect'),
+              tr('No registry check or font-size measurement for this scan. '
+                  'Hold the pack flat and close, with the barcode in focus.')),
       ],
     );
   }
 
   Widget _authenticityCard(AuthenticityResultModel auth) {
     final label = auth.isAuthentic
-        ? 'Registry match — authentic'
+        ? tr('Registry match — authentic')
         : auth.isTampered
-            ? 'Registry match — tampering suspected'
-            : 'Not in reference registry';
+            ? tr('Registry match — tampering suspected')
+            : tr('Not in reference registry');
     final color = auth.isAuthentic
         ? Colors.green.shade700
         : auth.isTampered
@@ -209,33 +213,34 @@ class ScanResultScreen extends StatelessWidget {
             : Colors.grey.shade700;
     return _sectionCard(
       icon: Icons.qr_code_2,
-      title: 'Authenticity',
+      title: tr('Authenticity'),
       subtitle: label,
       color: color,
       children: [
         if (auth.matchedProductName != null)
-          _kv('Matched product', auth.matchedProductName!),
+          _kv(tr('Matched product'), auth.matchedProductName!),
         if (auth.mismatches.isNotEmpty)
           ...auth.mismatches.map(
             (m) => _kv(
-              'Mismatch • ${m.field}',
-              'expected: ${m.expected ?? '—'}\ndetected: ${m.detected ?? '—'}',
+              tr('Mismatch • {field}', {'field': m.field}),
+              tr('expected: {expected}\ndetected: {detected}',
+                  {'expected': m.expected ?? '—', 'detected': m.detected ?? '—'}),
             ),
           ),
-        if (auth.message.isNotEmpty) _kv('Note', auth.message),
+        if (auth.message.isNotEmpty) _kv(tr('Note'), auth.message),
       ],
     );
   }
 
   Widget _fssaiCard(FssaiMarkModel mark) {
     final label = switch (mark.status) {
-      'vegetarian' => 'Vegetarian mark detected',
-      'non_vegetarian' => 'Non-vegetarian mark detected',
-      _ => 'FSSAI mark not detected',
+      'vegetarian' => tr('Vegetarian mark detected'),
+      'non_vegetarian' => tr('Non-vegetarian mark detected'),
+      _ => tr('FSSAI mark not detected'),
     };
     return _sectionCard(
       icon: Icons.circle,
-      title: 'FSSAI veg/non-veg mark',
+      title: tr('FSSAI veg/non-veg mark'),
       subtitle: label,
       color: mark.status == 'vegetarian'
           ? Colors.green
@@ -243,14 +248,14 @@ class ScanResultScreen extends StatelessWidget {
               ? Colors.red
               : Colors.grey,
       children: [
-        if (mark.foundOn != null) _kv('Found on', mark.foundOn!),
+        if (mark.foundOn != null) _kv(tr('Found on'), mark.foundOn!),
         if (mark.photosChecked > 1)
-          _kv('Photos checked', '${mark.photosChecked}'),
+          _kv(tr('Photos checked'), '${mark.photosChecked}'),
         if (mark.photosChecked > 1 && mark.status == 'not_found')
-          _kv('Note', mark.message),
-        _kv('Confidence', mark.confidence.toStringAsFixed(2)),
-        _kv('Green pixel ratio', mark.greenPixelRatio.toStringAsFixed(3)),
-        _kv('Red pixel ratio', mark.redPixelRatio.toStringAsFixed(3)),
+          _kv(tr('Note'), mark.message),
+        _kv(tr('Confidence'), mark.confidence.toStringAsFixed(2)),
+        _kv(tr('Green pixel ratio'), mark.greenPixelRatio.toStringAsFixed(3)),
+        _kv(tr('Red pixel ratio'), mark.redPixelRatio.toStringAsFixed(3)),
       ],
     );
   }
@@ -264,13 +269,13 @@ class ScanResultScreen extends StatelessWidget {
             : Colors.grey;
     return _sectionCard(
       icon: Icons.receipt_long,
-      title: 'GSTIN check',
-      subtitle: gstin.status.toUpperCase(),
+      title: tr('GSTIN check'),
+      subtitle: trCheckStatus(gstin.status),
       color: color,
       children: [
-        if (gstin.detectedValue != null) _kv('Detected', gstin.detectedValue!),
-        if (gstin.failureReason != null) _kv('Reason', gstin.failureReason!),
-        _kv('Scope', gstin.note),
+        if (gstin.detectedValue != null) _kv(tr('Detected'), gstin.detectedValue!),
+        if (gstin.failureReason != null) _kv(tr('Reason'), gstin.failureReason!),
+        _kv(tr('Scope'), gstin.note),
       ],
     );
   }
@@ -278,13 +283,13 @@ class ScanResultScreen extends StatelessWidget {
   Widget _productMetaCard() {
     return _sectionCard(
       icon: Icons.receipt,
-      title: 'Record',
-      subtitle: 'Evidence #${result.evidenceRecordId}',
+      title: tr('Record'),
+      subtitle: tr('Evidence #{id}', {'id': result.evidenceRecordId}),
       color: Colors.indigo,
       children: [
-        _kv('Compliance record', '#${result.complianceResultId}'),
-        _kv('Failed rule checks',
-            result.failedRuleCheckIds.isEmpty ? 'None' : result.failedRuleCheckIds.join(', ')),
+        _kv(tr('Compliance record'), '#${result.complianceResultId}'),
+        _kv(tr('Failed rule checks'),
+            result.failedRuleCheckIds.isEmpty ? tr('None') : result.failedRuleCheckIds.join(', ')),
       ],
     );
   }

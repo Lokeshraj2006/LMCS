@@ -3,7 +3,7 @@ import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'api_service.dart';
 
-/// Downloads legal-notice PDFs and opens them with the OS's default viewer.
+/// Downloads PDFs and opens them with the OS's default viewer.
 class PdfService {
   final ApiService api;
 
@@ -15,10 +15,20 @@ class PdfService {
   /// Returns the local file path (already opened) or throws on failure.
   Future<String> downloadAndOpenLegalNotice(int evidenceRecordId) async {
     final result = await api.downloadLegalNotice(evidenceRecordId);
+    return _saveAndOpen(result.bytes, result.filename);
+  }
+
+  /// The scan summary in [lang] ("en" or "ta"), saved and opened.
+  Future<String> downloadAndOpenScanSummary(int evidenceRecordId, String lang) async {
+    final result = await api.downloadScanSummary(evidenceRecordId, lang);
+    return _saveAndOpen(result.bytes, result.filename);
+  }
+
+  Future<String> _saveAndOpen(List<int> bytes, String filename) async {
     final dir = await getTemporaryDirectory();
-    final safeName = result.filename.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
+    final safeName = filename.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
     final outFile = File('${dir.path}/$safeName');
-    await outFile.writeAsBytes(result.bytes, flush: true);
+    await outFile.writeAsBytes(bytes, flush: true);
 
     final open = await OpenFilex.open(outFile.path, type: 'application/pdf');
     if (open.type != ResultType.done) {

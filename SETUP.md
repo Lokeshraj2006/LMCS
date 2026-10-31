@@ -146,8 +146,8 @@ placeholder key; with `DEBUG=false` the server refuses to start until
 ## Tests
 
 ```bash
-cd Backend && python -m pytest tests/ -q     # 352 tests
-cd mobile  && flutter test                   # 100 tests
+cd Backend && python -m pytest tests/ -q     # 363 tests
+cd mobile  && flutter test                   # 108 tests
 ```
 
 Server tests run on in-memory SQLite. One test, two "Issue notice" clicks
@@ -168,7 +168,7 @@ The full, live reference is at `/docs` when the server runs.
 | POST | `/scan` (photo, extra photos, fields read on the phone) | signed in |
 | GET | `/scan/history` (own scans) | signed in |
 | GET | `/inspections/log` (every scan) | inspector, admin |
-| GET | `/inspections/{id}`, `/inspections/{id}/image`, `/inspections/{id}/extra-image/{n}` | inspector, admin; a consumer only for their own scan |
+| GET | `/inspections/{id}`, `/inspections/{id}/image`, `/inspections/{id}/extra-image/{n}`, `/inspections/{id}/summary.pdf` (`?lang=en` or `ta`) | inspector, admin; a consumer only for their own scan |
 | GET | `/complaints/pending` | inspector, admin |
 | GET | `/legal-notice/{id}/generate` (compliance report PDF) | admin |
 | POST | `/violations` (file a report) | inspector, admin |

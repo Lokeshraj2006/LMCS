@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/compliance_provider.dart';
 import 'providers/inspection_log_provider.dart';
 import 'providers/inspection_provider.dart';
+import 'providers/language_provider.dart';
 import 'providers/pending_complaints_provider.dart';
 import 'providers/scan_provider.dart';
 import 'screens/splash_screen.dart';
@@ -31,10 +33,17 @@ class LMCSApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ScanProvider()),
         ChangeNotifierProvider(create: (_) => InspectionLogProvider()),
         ChangeNotifierProvider(create: (_) => PendingComplaintsProvider()),
+        ChangeNotifierProvider(create: (_) => LanguageProvider()),
       ],
-      child: MaterialApp(
+      child: Consumer<LanguageProvider>(
+        builder: (context, lang, _) => MaterialApp(
         title: 'LMCS',
         debugShowCheckedModeBanner: false,
+        // Flutter's own widgets (back buttons, date pickers) follow the
+        // app's language too.
+        locale: lang.locale,
+        supportedLocales: const [Locale('en'), Locale('ta')],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(
@@ -51,6 +60,7 @@ class LMCSApp extends StatelessWidget {
           ),
         ),
         home: const SplashScreen(),
+        ),
       ),
     );
   }

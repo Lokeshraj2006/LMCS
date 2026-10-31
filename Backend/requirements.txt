@@ -28,6 +28,8 @@ ntplib==0.4.0
 
 # Report Generation
 reportlab==4.2.2
+# Scan summary PDF: lays out Tamil with real text shaping (CPU only)
+pymupdf==1.28.2
 
 # Cloud Storage (swappable interface — GCS adapter later)
 # google-cloud-storage==2.18.2  # Uncomment for GCP deployment

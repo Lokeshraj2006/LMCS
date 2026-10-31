@@ -27,6 +27,7 @@ Smart India Hackathon 2026 · Problem statement **SIH26034** · Team **HexTech**
 - 🔒 **Evidence that holds up.** Each photo gets a SHA-256 fingerprint, GPS and network time, and the dashboard re-checks the fingerprint every time it is viewed.
 - ⚖️ **Honest verdicts.** **Compliant**, **Needs review** or **Action needed**. If the photo can't settle a check it says REVIEW and a person decides, never a guessed pass.
 - 🏛️ **People decide.** A consumer's scan raises a complaint, an inspector files a report, and only the Controller confirms it and issues the GO notice. The server enforces this.
+- 🌐 **Tamil and English.** One tap switches the app's screens. Each scan's report PDF is made in the language the app is set to, with proper Tamil text shaping (long-press the Report button for the other language).
 
 ## How it works
 
@@ -70,8 +71,8 @@ Running each part by hand, building the Android app, and troubleshooting are in 
 ## Tests
 
 ```bash
-cd Backend && python -m pytest tests/ -q     # 352 tests
-cd mobile  && flutter test                   # 100 tests
+cd Backend && python -m pytest tests/ -q     # 363 tests
+cd mobile  && flutter test                   # 108 tests
 ```
 
 GitHub Actions runs both, plus the dashboard build, on every push.

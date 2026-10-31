@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
+import '../l10n/strings.dart';
 
 /// The three results a scan can have, from the server's `overall_status`.
 ///
@@ -14,9 +15,9 @@ class Verdict {
   static const needsReview = 'needs_review';
 
   static String label(String status) => switch (status) {
-        actionNeeded => 'ACTION NEEDED',
-        needsReview => 'NEEDS REVIEW',
-        _ => 'COMPLIANT',
+        actionNeeded => tr('ACTION NEEDED'),
+        needsReview => tr('NEEDS REVIEW'),
+        _ => tr('COMPLIANT'),
       };
 
   static Color color(String status) => switch (status) {

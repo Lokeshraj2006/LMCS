@@ -1,5 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../l10n/strings.dart';
+
 /// Runtime-configurable app settings.
 ///
 /// The backend URL is the important one: on a phone hotspot the laptop's IP
@@ -17,6 +19,7 @@ class SettingsService {
 
   static const _storage = FlutterSecureStorage();
   static const _apiBaseUrlKey = 'api_base_url_override';
+  static const _languageKey = 'app_language';
 
   static const String _emulatorFallback = 'http://10.0.2.2:8000';
   static const String compiledDefault =
@@ -44,11 +47,16 @@ class SettingsService {
     if (_loaded) return;
     try {
       _cachedOverride = await _storage.read(key: _apiBaseUrlKey);
+      AppLanguage.tamil = await _storage.read(key: _languageKey) == 'ta';
     } catch (_) {
       _cachedOverride = null;
     }
     _loaded = true;
   }
+
+  /// Remember the app language ("en" or "ta") for the next launch.
+  static Future<void> setLanguage(String code) =>
+      _storage.write(key: _languageKey, value: code);
 
   /// Persist a new backend URL and update the cache immediately.
   static Future<void> setApiBaseUrl(String url) async {

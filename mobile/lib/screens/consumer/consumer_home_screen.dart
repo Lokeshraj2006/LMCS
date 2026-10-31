@@ -10,6 +10,8 @@ import '../settings_screen.dart';
 import 'my_scans_screen.dart';
 import 'scan_capture_screen.dart';
 import 'scan_result_screen.dart';
+import '../../l10n/strings.dart';
+import '../../widgets/language_toggle.dart';
 
 /// Consumer home screen — quick access to scan-label + view last verdict.
 class ConsumerHomeScreen extends StatelessWidget {
@@ -23,13 +25,14 @@ class ConsumerHomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Consumer Portal'),
+        title: Text(tr('Consumer Portal')),
         backgroundColor: Colors.indigo.shade700,
         foregroundColor: Colors.white,
         actions: [
+          const LanguageToggle(color: Colors.white),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
-            tooltip: 'Backend settings',
+            tooltip: tr('Backend settings'),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const SettingsScreen()),
             ),
@@ -50,7 +53,7 @@ class ConsumerHomeScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _welcomeCard(auth.currentUser?.fullName ?? 'Consumer'),
+          _welcomeCard(auth.currentUser?.fullName ?? tr('Consumer')),
           const SizedBox(height: 16),
           _rightsCard(),
           const SizedBox(height: 16),
@@ -82,8 +85,8 @@ class ConsumerHomeScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Welcome',
-                    style: TextStyle(fontSize: 12, color: Colors.black54)),
+                Text(tr('Welcome'),
+                    style: const TextStyle(fontSize: 12, color: Colors.black54)),
                 Text(name,
                     style: const TextStyle(
                         fontSize: 16, fontWeight: FontWeight.w600)),
@@ -107,16 +110,14 @@ class ConsumerHomeScreen extends StatelessWidget {
             Row(children: [
               Icon(Icons.verified, color: Colors.indigo.shade600),
               const SizedBox(width: 8),
-              const Text(
-                'Know Your Consumer Rights',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              Text(tr('Know Your Consumer Rights'),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
             ]),
             const SizedBox(height: 8),
-            const Text(
-              'Under Legal Metrology Rules, every packaged commodity must declare: '
-              'MRP, Net Quantity, Mfg/Expiry date, and Manufacturer details.',
-              style: TextStyle(fontSize: 13, color: Colors.black87),
+            Text(tr('Under Legal Metrology Rules, every packaged commodity must declare: '
+              'MRP, Net Quantity, Mfg/Expiry date, and Manufacturer details.'),
+              style: const TextStyle(fontSize: 13, color: Colors.black87),
             ),
           ],
         ),
@@ -131,9 +132,8 @@ class ConsumerHomeScreen extends StatelessWidget {
         minimumSize: const Size.fromHeight(56),
       ),
       icon: const Icon(Icons.qr_code_scanner),
-      label: const Text(
-        'Scan Label',
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+      label: Text(tr('Scan Label'),
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
       ),
       onPressed: () {
         Navigator.of(context).push(
@@ -147,9 +147,8 @@ class ConsumerHomeScreen extends StatelessWidget {
     return OutlinedButton.icon(
       style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
       icon: const Icon(Icons.history),
-      label: const Text(
-        'My scans',
-        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+      label: Text(tr('My scans'),
+        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
       ),
       onPressed: () => Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => const MyScansScreen()),
@@ -168,7 +167,7 @@ class ConsumerHomeScreen extends StatelessWidget {
       child: ListTile(
         leading: Icon(Verdict.icon(last.overallStatus), color: color),
         title: Text(
-          last.productName ?? 'Last scan',
+          last.productName ?? tr('Last scan'),
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(

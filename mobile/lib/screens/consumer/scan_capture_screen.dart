@@ -15,6 +15,7 @@ import '../../services/gps_service.dart';
 import '../../services/ntp_service.dart';
 import '../../services/ocr_service.dart';
 import 'ocr_review_screen.dart';
+import '../../l10n/strings.dart';
 
 /// Consumer-facing scan capture flow: preview camera → capture → barcode + OCR
 /// → build ScanContext → POST /scan → route to the result screen.
@@ -49,7 +50,7 @@ class _ScanCaptureScreenState extends State<ScanCaptureScreen> {
     try {
       await _camera.initialize();
     } catch (e) {
-      _initError = 'Camera failed to initialize: $e';
+      _initError = tr('Camera failed to initialize: {error}', {'error': e});
     }
     if (!mounted) return;
     setState(() => _initializing = false);
@@ -66,7 +67,7 @@ class _ScanCaptureScreenState extends State<ScanCaptureScreen> {
   Future<void> _capture() async {
     final file = await _camera.takePicture();
     if (file == null) {
-      _snack('Could not capture image.');
+      _snack(tr('Could not capture image.'));
       return;
     }
     await _runPipeline(file.path);
@@ -79,27 +80,27 @@ class _ScanCaptureScreenState extends State<ScanCaptureScreen> {
   }
 
   Future<void> _runPipeline(String imagePath) async {
-    setState(() => _stage = 'Scanning barcode…');
+    setState(() => _stage = tr('Scanning barcode…'));
     final barcodeMeta = await _safeBarcode(imagePath);
 
-    setState(() => _stage = 'Reading text on label…');
+    setState(() => _stage = tr('Reading text on label…'));
     final ocr = await _safeOcr(imagePath);
     final blocks = ocr.blocks;
     final ocrText = blocks.map((b) => b.text).join('\n');
 
-    setState(() => _stage = 'Extracting label fields…');
+    setState(() => _stage = tr('Extracting label fields…'));
     final fields = _extractor.extract(ocrText, lines: ocr.lines);
 
-    setState(() => _stage = 'Measuring label…');
+    setState(() => _stage = tr('Measuring label…'));
     final imageSize = await _imageSize(imagePath);
 
-    setState(() => _stage = 'Locating your position…');
+    setState(() => _stage = tr('Locating your position…'));
     final gps = await GpsService.getCurrentPosition();
 
     // Atomic time. Its agreement with the device clock is what gives the
     // capture timestamp evidential weight, so it is worth the round trip —
     // but a failure must not block the scan.
-    setState(() => _stage = 'Verifying time…');
+    setState(() => _stage = tr('Verifying time…'));
     final time = await _safeNtp();
 
     if (!mounted) return;
@@ -201,14 +202,14 @@ class _ScanCaptureScreenState extends State<ScanCaptureScreen> {
       backgroundColor: Colors.black,
       appBar: AppBar(
         title: Text(widget.rescanOfId == null
-            ? 'Scan Label'
-            : 'Rescan #${widget.rescanOfId}'),
+            ? tr('Scan Label')
+            : tr('Rescan #{id}', {'id': widget.rescanOfId})),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.photo_library_outlined),
-            tooltip: 'Pick from gallery',
+            tooltip: tr('Pick from gallery'),
             onPressed: scan.submitting ? null : _pickFromGallery,
           ),
         ],
@@ -224,7 +225,7 @@ class _ScanCaptureScreenState extends State<ScanCaptureScreen> {
             ),
             icon: const Icon(Icons.camera),
             label: Text(
-              scan.submitting ? 'Working…' : 'Capture & Submit',
+              scan.submitting ? tr('Working…') : tr('Capture & Submit'),
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             onPressed: (scan.submitting ||
@@ -245,23 +246,21 @@ class _ScanCaptureScreenState extends State<ScanCaptureScreen> {
       );
     }
     if (_initError != null || !_camera.isInitialized) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.no_photography, size: 64, color: Colors.white54),
-              SizedBox(height: 16),
-              Text(
-                'Camera not available on this device.',
-                style: TextStyle(color: Colors.white70, fontSize: 16),
+              const Icon(Icons.no_photography, size: 64, color: Colors.white54),
+              const SizedBox(height: 16),
+              Text(tr('Camera not available on this device.'),
+                style: const TextStyle(color: Colors.white70, fontSize: 16),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 8),
-              Text(
-                'Use the gallery button above to pick an existing image.',
-                style: TextStyle(color: Colors.white38),
+              const SizedBox(height: 8),
+              Text(tr('Use the gallery button above to pick an existing image.'),
+                style: const TextStyle(color: Colors.white38),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -304,7 +303,7 @@ class _ScanCaptureScreenState extends State<ScanCaptureScreen> {
           const CircularProgressIndicator(color: Colors.white),
           const SizedBox(height: 16),
           Text(
-            _stage.isEmpty ? 'Submitting…' : _stage,
+            _stage.isEmpty ? tr('Submitting…') : _stage,
             style: const TextStyle(color: Colors.white, fontSize: 15),
           ),
         ],

@@ -1,4 +1,5 @@
 import '../models/extracted_fields.dart';
+import '../l10n/strings.dart';
 
 // Many packs print the dates or the price on another surface and say so on
 // the label ("BATCH NO., MFD., USE BY: SEE SEAL"). Mirrors the server's check
@@ -108,5 +109,5 @@ String _comparable(String key, String value) {
 /// "manufacture date, use-by date and MRP"
 String joinLabels(List<String> labels) {
   if (labels.length <= 1) return labels.join();
-  return '${labels.sublist(0, labels.length - 1).join(', ')} and ${labels.last}';
+  return '${labels.sublist(0, labels.length - 1).join(', ')} ${tr('and')} ${labels.last}';
 }

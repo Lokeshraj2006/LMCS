@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/settings_service.dart';
 import '../utils/app_colors.dart';
+import '../l10n/strings.dart';
+import '../providers/language_provider.dart';
+import 'package:provider/provider.dart';
 
 /// Lets the user point the app at a different backend without rebuilding.
 ///
@@ -59,7 +62,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       setState(() {
         _testOk = true;
         _testResult =
-            'Connected — ${health['app'] ?? 'backend'} v${health['version'] ?? '?'}';
+            tr('Connected — {app} v{version}', {'app': health['app'] ?? 'backend', 'version': health['version'] ?? '?'});
       });
     } catch (e) {
       if (!mounted) return;
@@ -77,16 +80,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (m.contains('SocketException') ||
         m.contains('Connection refused') ||
         m.contains('Failed host')) {
-      return 'Could not reach that address. Check the IP, that the backend is '
-          'running, and that the firewall allows the port.';
+      return tr('Could not reach that address. Check the IP, that the backend is '
+          'running, and that the firewall allows the port.');
     }
     if (m.contains('timeout') || m.contains('Timeout')) {
-      return 'Timed out. Usually means a firewall is dropping the connection.';
+      return tr('Timed out. Usually means a firewall is dropping the connection.');
     }
     if (m.contains('404')) {
-      return 'Reached a server, but it has no /health endpoint. Wrong address?';
+      return tr('Reached a server, but it has no /health endpoint. Wrong address?');
     }
-    return 'Failed: $m';
+    return tr('Failed: {error}', {'error': m});
   }
 
   Future<void> _save() async {
@@ -102,7 +105,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _saved = true;
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Backend set to ${SettingsService.apiBaseUrl}')),
+      SnackBar(content: Text(tr('Backend set to {url}', {'url': SettingsService.apiBaseUrl}))),
     );
   }
 
@@ -122,13 +125,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(tr('Settings')),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          _languageCard(),
+          const SizedBox(height: 16),
           _explainer(),
           const SizedBox(height: 16),
           TextField(
@@ -137,9 +142,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             autocorrect: false,
             style: const TextStyle(fontSize: 15),
             decoration: InputDecoration(
-              labelText: 'Backend address',
+              labelText: tr('Backend address'),
               hintText: '192.168.1.42:8000',
-              helperText: 'http:// is added automatically if you omit it',
+              helperText: tr('http:// is added automatically if you omit it'),
               errorText: _validationError,
               filled: true,
               fillColor: AppColors.surface,
@@ -166,7 +171,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.wifi_tethering),
-                  label: Text(_testing ? 'Testing…' : 'Test connection'),
+                  label: Text(_testing ? tr('Testing…') : tr('Test connection')),
                   onPressed: _testing ? null : _test,
                 ),
               ),
@@ -176,7 +181,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: FilledButton.styleFrom(
                       backgroundColor: AppColors.primary),
                   icon: Icon(_saved ? Icons.check : Icons.save_outlined),
-                  label: Text(_saved ? 'Saved' : 'Save'),
+                  label: Text(_saved ? tr('Saved') : tr('Save')),
                   onPressed: _save,
                 ),
               ),
@@ -191,11 +196,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 12),
           TextButton.icon(
             icon: const Icon(Icons.restart_alt),
-            label: Text('Reset to built-in default '
-                '(${SettingsService.defaultBaseUrl})'),
+            label: Text(tr('Reset to built-in default ({url})',
+                {'url': SettingsService.defaultBaseUrl})),
             onPressed: _reset,
           ),
         ],
+      ),
+    );
+  }
+
+  /// English or Tamil for every screen and the scan report.
+  Widget _languageCard() {
+    final lang = context.watch<LanguageProvider>();
+    return Card(
+      elevation: 0,
+      color: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: AppColors.border),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              const Icon(Icons.translate, size: 20, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Text(tr('Language'),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, color: AppColors.primary)),
+            ]),
+            const SizedBox(height: 10),
+            SegmentedButton<bool>(
+              segments: const [
+                ButtonSegment(value: false, label: Text('English')),
+                ButtonSegment(value: true, label: Text('தமிழ்')),
+              ],
+              selected: {lang.tamil},
+              onSelectionChanged: (s) => lang.setTamil(s.first),
+            ),
+            const SizedBox(height: 8),
+            Text(tr('Screens and the scan report (PDF) use this language.'),
+                style: const TextStyle(
+                    fontSize: 12, color: AppColors.textSecondary)),
+          ],
+        ),
       ),
     );
   }
@@ -208,26 +254,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: AppColors.primary.withValues(alpha: 0.3)),
       ),
-      child: const Padding(
-        padding: EdgeInsets.all(14),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [
-              Icon(Icons.info_outline, size: 20, color: AppColors.primary),
-              SizedBox(width: 8),
-              Text('Backend address',
-                  style: TextStyle(
+              const Icon(Icons.info_outline, size: 20, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Text(tr('Backend address'),
+                  style: const TextStyle(
                       fontWeight: FontWeight.bold, color: AppColors.primary)),
             ]),
-            SizedBox(height: 8),
-            Text(
-              'Point this at the machine running the LMCS API. On a phone '
+            const SizedBox(height: 8),
+            Text(tr('Point this at the machine running the LMCS API. On a phone '
               'hotspot the laptop\'s IP changes when the hotspot restarts — just '
               'retype it here instead of reinstalling the app.\n\n'
               'Find it by running "ipconfig" on the laptop and reading the IPv4 '
-              'address of the Wi-Fi adapter.',
-              style: TextStyle(fontSize: 12.5, height: 1.45),
+              'address of the Wi-Fi adapter.'),
+              style: const TextStyle(fontSize: 12.5, height: 1.45),
             ),
           ],
         ),
@@ -275,12 +320,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _kv('Currently using', SettingsService.apiBaseUrl),
+            _kv(tr('Currently using'), SettingsService.apiBaseUrl),
             const SizedBox(height: 6),
-            _kv('Built into this APK', SettingsService.defaultBaseUrl),
+            _kv(tr('Built into this APK'), SettingsService.defaultBaseUrl),
             const SizedBox(height: 6),
-            _kv('Source',
-                SettingsService.hasOverride ? 'Your override' : 'Build default'),
+            _kv(tr('Source'),
+                SettingsService.hasOverride ? tr('Your override') : tr('Build default')),
           ],
         ),
       ),

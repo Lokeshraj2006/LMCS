@@ -12,6 +12,7 @@ import '../../providers/pending_complaints_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/verdict.dart';
 import 'inspection_detail_screen.dart';
+import '../../l10n/strings.dart';
 
 /// Field map for inspectors: where consumers have reported problems, and
 /// where scans have already been done.
@@ -186,17 +187,17 @@ class _InspectionMapScreenState extends State<InspectionMapScreen> {
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(children: [
-                _chip('To visit ($complaintCount)', _Layer.complaints),
+                _chip(tr('To visit ({n})', {'n': complaintCount}), _Layer.complaints),
                 const SizedBox(width: 6),
-                _chip('Scanned ($scanCount)', _Layer.scans),
+                _chip(tr('Scanned ({n})', {'n': scanCount}), _Layer.scans),
                 const SizedBox(width: 6),
-                _chip('Both', _Layer.both),
+                _chip(tr('Both'), _Layer.both),
               ]),
             ),
           ),
           IconButton(
             icon: const Icon(Icons.my_location),
-            tooltip: 'Fit all pins',
+            tooltip: tr('Fit all pins'),
             onPressed: () {
               _fitted = false;
               setState(() {});
@@ -234,7 +235,7 @@ class _InspectionMapScreenState extends State<InspectionMapScreen> {
               child: Icon(i, size: 10, color: Colors.white),
             ),
             const SizedBox(width: 6),
-            Text(label, style: const TextStyle(fontSize: 10.5)),
+            Text(tr(label), style: const TextStyle(fontSize: 10.5)),
           ]),
         );
 
@@ -276,8 +277,8 @@ class _InspectionMapScreenState extends State<InspectionMapScreen> {
           const SizedBox(height: 10),
           Text(
             loading
-                ? 'Loading map data…'
-                : error ?? 'No scans or complaints with GPS coordinates yet.',
+                ? tr('Loading map data…')
+                : error ?? tr('No scans or complaints with GPS coordinates yet.'),
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 12.5),
           ),
@@ -299,7 +300,7 @@ class _InspectionMapScreenState extends State<InspectionMapScreen> {
             Icon(Verdict.icon(r.overallStatus), color: color),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(r.productName ?? 'Evidence #${r.evidenceRecordId}',
+              child: Text(r.productName ?? tr('Evidence #{id}', {'id': r.evidenceRecordId}),
                   style: const TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 15)),
             ),
@@ -323,7 +324,7 @@ class _InspectionMapScreenState extends State<InspectionMapScreen> {
             Expanded(
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.directions, size: 18),
-                label: const Text('Directions'),
+                label: Text(tr('Directions')),
                 onPressed: () =>
                     _openDirections(r.gpsLatitude!, r.gpsLongitude!),
               ),
@@ -333,7 +334,7 @@ class _InspectionMapScreenState extends State<InspectionMapScreen> {
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
                 icon: const Icon(Icons.open_in_new, size: 18),
-                label: const Text('Open'),
+                label: Text(tr('Open')),
                 onPressed: () {
                   Navigator.of(context).pop();
                   Navigator.of(context).push(MaterialPageRoute(
@@ -360,7 +361,7 @@ class _InspectionMapScreenState extends State<InspectionMapScreen> {
             const Icon(Icons.campaign, color: AppColors.accent),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(r.productName ?? 'Consumer report',
+              child: Text(r.productName ?? tr('Consumer report'),
                   style: const TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 15)),
             ),
@@ -370,8 +371,8 @@ class _InspectionMapScreenState extends State<InspectionMapScreen> {
                 color: AppColors.accent.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Text('VISIT',
-                  style: TextStyle(
+              child: Text(tr('VISIT'),
+                  style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                       color: AppColors.accent)),
@@ -379,7 +380,7 @@ class _InspectionMapScreenState extends State<InspectionMapScreen> {
           ]),
           const SizedBox(height: 8),
           _sheetMeta(
-            'Reported ${DateFormat('dd MMM yyyy, HH:mm').format(r.filedAt)}',
+            tr('Reported {when}', {'when': DateFormat('dd MMM yyyy, HH:mm').format(r.filedAt)}),
             r.gpsLatitude!,
             r.gpsLongitude!,
           ),
@@ -393,7 +394,7 @@ class _InspectionMapScreenState extends State<InspectionMapScreen> {
             Expanded(
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.directions, size: 18),
-                label: const Text('Directions'),
+                label: Text(tr('Directions')),
                 onPressed: () =>
                     _openDirections(r.gpsLatitude!, r.gpsLongitude!),
               ),
@@ -403,7 +404,7 @@ class _InspectionMapScreenState extends State<InspectionMapScreen> {
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
                 icon: const Icon(Icons.open_in_new, size: 18),
-                label: const Text('Evidence'),
+                label: Text(tr('Evidence')),
                 onPressed: r.evidenceRecordId == null
                     ? null
                     : () {

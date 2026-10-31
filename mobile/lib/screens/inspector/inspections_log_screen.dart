@@ -7,6 +7,7 @@ import '../../providers/inspection_log_provider.dart';
 import '../../utils/verdict.dart';
 import '../../widgets/scan_flags.dart';
 import 'inspection_detail_screen.dart';
+import '../../l10n/strings.dart';
 
 class InspectionsLogScreen extends StatefulWidget {
   const InspectionsLogScreen({super.key});
@@ -48,7 +49,7 @@ class _InspectionsLogScreenState extends State<InspectionsLogScreen> {
               child: Row(
                 children: [
                   FilterChip(
-                    label: const Text('Action needed'),
+                    label: Text(tr('Action needed')),
                     selected: provider.onlyActionNeeded,
                     onSelected: (v) => provider.setOnlyActionNeeded(v),
                     selectedColor: Colors.red.shade100,
@@ -56,7 +57,7 @@ class _InspectionsLogScreenState extends State<InspectionsLogScreen> {
                   const SizedBox(width: 8),
                   // "What have I checked": this inspector's own scans.
                   FilterChip(
-                    label: const Text('Mine only'),
+                    label: Text(tr('Mine only')),
                     selected: provider.mineOnly,
                     onSelected: (v) => provider.setMineOnly(v),
                     selectedColor: Colors.blueGrey.shade100,
@@ -66,7 +67,7 @@ class _InspectionsLogScreenState extends State<InspectionsLogScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          Text('${provider.rows.length} rows',
+          Text(tr('{n} rows', {'n': provider.rows.length}),
               style: TextStyle(color: Colors.grey.shade700, fontSize: 12)),
           const SizedBox(width: 8),
           IconButton(
@@ -86,11 +87,11 @@ class _InspectionsLogScreenState extends State<InspectionsLogScreen> {
       return _errorState(provider.errorMessage!, () => provider.refresh());
     }
     if (provider.rows.isEmpty) {
-      return const _EmptyState(
+      return _EmptyState(
         icon: Icons.assignment_outlined,
-        title: 'No inspections logged yet.',
+        title: tr('No inspections logged yet.'),
         subtitle:
-            'When a consumer or inspector submits a scan, it will appear here.',
+            tr('When a consumer or inspector submits a scan, it will appear here.'),
       );
     }
     return RefreshIndicator(
@@ -108,7 +109,7 @@ class _InspectionsLogScreenState extends State<InspectionsLogScreen> {
     final color = Verdict.color(row.overallStatus);
     final subtitle = <String>[
       DateFormat('dd MMM yyyy, HH:mm').format(row.timestamp),
-      if (row.capturedByUsername != null) 'by ${row.capturedByUsername}',
+      if (row.capturedByUsername != null) tr('by {user}', {'user': row.capturedByUsername}),
       if (row.gpsLatitude != null && row.gpsLongitude != null)
         '${row.gpsLatitude!.toStringAsFixed(4)}, ${row.gpsLongitude!.toStringAsFixed(4)}',
     ].join(' • ');
@@ -124,7 +125,7 @@ class _InspectionsLogScreenState extends State<InspectionsLogScreen> {
           child: Icon(Icons.location_on, color: color),
         ),
         title: Text(
-          row.productName ?? 'Evidence #${row.evidenceRecordId}',
+          row.productName ?? tr('Evidence #{id}', {'id': row.evidenceRecordId}),
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         subtitle: Column(
@@ -186,7 +187,7 @@ class _InspectionsLogScreenState extends State<InspectionsLogScreen> {
             const SizedBox(height: 12),
             FilledButton.icon(
               icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              label: Text(tr('Retry')),
               onPressed: retry,
             ),
           ],

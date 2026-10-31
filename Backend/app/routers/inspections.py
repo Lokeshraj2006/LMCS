@@ -20,6 +20,10 @@ Feeds the React admin dashboard table and Leaflet map.
     GET /inspections/{evidence_record_id}/extra-image/{index}
         An extra photo of another face sent with the scan, same checks.
 
+    GET /inspections/{evidence_record_id}/summary.pdf?lang=en|ta
+        A one-page scan summary for the person who scanned it, in English
+        or Tamil. Same access rule as the detail view.
+
 The GET /complaints/pending endpoint added for item 7's consumer→inspector
 handoff is co-located here since it draws from the same dashboard data.
 """
@@ -59,6 +63,7 @@ from app.schemas.inspection import (
     RuleCheckDetail,
 )
 from app.services.scan_audit import enum_value, load_edited_fields, log_row, log_row_options
+from app.services.scan_summary import render_scan_summary
 
 router = APIRouter(prefix="/inspections", tags=["inspections"])
 complaints_router = APIRouter(prefix="/complaints", tags=["complaints"])
@@ -324,6 +329,35 @@ def get_inspection_detail(
         same_photo_ids=same_photo_ids,
         edited_fields=[EditedField(**e) for e in edited] if edited is not None else None,
         extra_photos=extra_photos,
+    )
+
+
+# ── GET /inspections/{evidence_record_id}/summary.pdf ─────────────────────
+@router.get(
+    "/{evidence_record_id}/summary.pdf",
+    summary="A one-page scan summary PDF, in English or Tamil",
+    responses={200: {"content": {"application/pdf": {}}}},
+)
+def get_scan_summary_pdf(
+    evidence_record_id: int,
+    lang: str = Query("en", pattern="^(en|ta)$", description="en = English, ta = Tamil."),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_authenticated_user),
+) -> Response:
+    """The scan's verdict, 13 checks and evidence for the person who scanned it.
+
+    Same access rule as the detail view, which it is built from. It is a
+    record of the scan, not the Controller's compliance report or a notice.
+    """
+    detail = get_inspection_detail(evidence_record_id, db, current_user)
+    pdf, filename = render_scan_summary(detail, lang)
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "private, no-store",
+        },
     )
 
 

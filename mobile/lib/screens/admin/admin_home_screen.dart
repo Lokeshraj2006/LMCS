@@ -5,6 +5,8 @@ import '../../providers/auth_provider.dart';
 import '../../services/settings_service.dart';
 import '../../utils/app_colors.dart';
 import '../auth/login_screen.dart';
+import '../../l10n/strings.dart';
+import '../../widgets/language_toggle.dart';
 
 /// Administrators do not work from the mobile app.
 ///
@@ -34,13 +36,14 @@ class AdminHomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Administrator'),
+        title: Text(tr('Administrator')),
         backgroundColor: AppColors.inspectorPrimary,
         foregroundColor: Colors.white,
         actions: [
+          const LanguageToggle(color: Colors.white),
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: 'Sign out',
+            tooltip: tr('Sign out'),
             onPressed: () async {
               await auth.logout();
               if (context.mounted) {
@@ -69,15 +72,14 @@ class AdminHomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               Text(
-                'Signed in as ${auth.currentUser?.fullName ?? 'Administrator'}',
+                tr('Signed in as {name}', {'name': auth.currentUser?.fullName ?? tr('Administrator')}),
                 style: const TextStyle(
                     fontSize: 16, fontWeight: FontWeight.w600),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 6),
-              const Text(
-                'Administrator tools are on the web dashboard',
-                style: TextStyle(
+              Text(tr('Administrator tools are on the web dashboard'),
+                style: const TextStyle(
                     fontSize: 13, color: AppColors.textSecondary),
                 textAlign: TextAlign.center,
               ),
@@ -88,7 +90,7 @@ class AdminHomeScreen extends StatelessWidget {
               const SizedBox(height: 22),
               OutlinedButton.icon(
                 icon: const Icon(Icons.logout, size: 18),
-                label: const Text('Sign out'),
+                label: Text(tr('Sign out')),
                 onPressed: () async {
                   await auth.logout();
                   if (context.mounted) {
@@ -122,9 +124,9 @@ class AdminHomeScreen extends StatelessWidget {
                         color: AppColors.textPrimary),
                     children: [
                       TextSpan(
-                          text: '$who — ',
+                          text: '${tr(who)} — ',
                           style: const TextStyle(fontWeight: FontWeight.bold)),
-                      TextSpan(text: what),
+                      TextSpan(text: tr(what)),
                     ],
                   ),
                 ),
@@ -144,9 +146,9 @@ class AdminHomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Who does what',
+            Text(tr('Who does what'),
                 style:
-                    TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
             const SizedBox(height: 4),
             row(Icons.phone_android, 'Consumer',
                 'scans a product and reports it to an inspector'),
@@ -172,8 +174,8 @@ class AdminHomeScreen extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         child: Column(
           children: [
-            const Text('Open on a computer',
-                style: TextStyle(
+            Text(tr('Open on a computer'),
+                style: const TextStyle(
                     fontSize: 12, color: AppColors.textSecondary)),
             const SizedBox(height: 6),
             SelectableText(
