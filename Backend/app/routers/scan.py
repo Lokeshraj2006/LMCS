@@ -46,6 +46,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.core.dependencies import require_authenticated_user
+from app.core.limits import read_photo, scan_slot
 from app.database import get_db
 from app.models.compliance_result import ComplianceResult
 from app.models.evidence import EvidenceRecord
@@ -182,7 +183,7 @@ def _persist_rule_checks(
     status_code=status.HTTP_201_CREATED,
     summary="Submit an evidence image + scan context for full compliance analysis",
 )
-async def submit_scan(
+def submit_scan(
     image: UploadFile = File(..., description="Evidence image (JPEG/PNG)."),
     context: str = Form(
         ...,
@@ -197,8 +198,13 @@ async def submit_scan(
     ),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_authenticated_user),
+    _slot: None = Depends(scan_slot),
 ) -> ScanResponse:
-    """Full scan pipeline — authenticity + FSSAI + GSTIN + aggregation + auto-notify."""
+    """Full scan pipeline — authenticity + FSSAI + GSTIN + aggregation + auto-notify.
+
+    A plain ``def``, so FastAPI runs it in its worker threads: the image
+    analysis is CPU-bound and would otherwise stall every other request.
+    """
 
     # ── Parse the context blob ───────────────────────────────────────
     try:
@@ -228,7 +234,7 @@ async def submit_scan(
                 detail="You can only rescan your own scans.",
             )
 
-    image_bytes = await image.read()
+    image_bytes = read_photo(image, "The evidence photo")
     if not image_bytes:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -243,8 +249,8 @@ async def submit_scan(
         )
     extra_photos: List[Dict[str, Any]] = []
     extra_marks: List[FssaiMarkResult] = []
-    for upload in extra_uploads:
-        data = await upload.read()
+    for n, upload in enumerate(extra_uploads, start=1):
+        data = read_photo(upload, f"Extra photo {n}")
         if not data:
             continue
         index = len(extra_photos) + 1

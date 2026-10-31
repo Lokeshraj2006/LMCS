@@ -6,10 +6,11 @@ Provides user registration, token generation (login), and current profile endpoi
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_active_user, require_admin
+from app.core.limits import login_lockout
 from app.core.security import create_access_token
 from app.database import get_db
 from app.models.user import User, UserRole
@@ -84,20 +85,28 @@ def _create(user_in: UserCreate, db: Session) -> User:
     response_model=Token,
     summary="Login and obtain JWT access token",
 )
-def login(credentials: UserLogin, db: Session = Depends(get_db)):
-    """Authenticate with username/email and password to receive a JWT Bearer token."""
+def login(credentials: UserLogin, request: Request, db: Session = Depends(get_db)):
+    """Authenticate with username/email and password to receive a JWT Bearer token.
+
+    After repeated failures for one account from one address, further
+    attempts get 429 until the lockout window passes.
+    """
+    address = request.client.host if request.client else "unknown"
+    login_lockout.check(address, credentials.username_or_email)
     user = authenticate_user(
         db,
         username_or_email=credentials.username_or_email,
         password=credentials.password,
     )
     if not user:
+        login_lockout.failed(address, credentials.username_or_email)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username/email or password.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    login_lockout.succeeded(address, credentials.username_or_email)
     role_val = user.role.value if hasattr(user.role, "value") else str(user.role)
     access_token = create_access_token(subject=user.id, role=role_val)
 

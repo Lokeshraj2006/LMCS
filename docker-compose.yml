@@ -1,4 +1,15 @@
-version: "3.9"
+# LMCS — whole stack on one small machine, CPU only.
+#
+#   docker compose up --build
+#   dashboard  http://localhost:8080
+#   API        http://localhost:8000   (phone: adb reverse tcp:8000 tcp:8000)
+#
+# Then create the first admin:
+#   docker compose exec backend python -m app.scripts.create_user \
+#     --username admin --email admin@lm.test --full-name "Controller" \
+#     --role admin --password '<choose one>'
+#
+# Memory limits are set to fit a 1 GB / 1 vCPU server; nothing here needs a GPU.
 
 services:
   # ── PostgreSQL ──────────────────────────────────────────────
@@ -10,10 +21,11 @@ services:
       POSTGRES_USER: labelguard
       POSTGRES_PASSWORD: labelguard_dev
       POSTGRES_DB: labelguard_db
-    ports:
-      - "5432:5432"
+    # Not published to the host: only the backend talks to it, and the
+    # host's own PostgreSQL may already hold 5432/5433.
     volumes:
       - pgdata:/var/lib/postgresql/data
+    mem_limit: 256m
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U labelguard -d labelguard_db"]
       interval: 5s
@@ -23,7 +35,7 @@ services:
   # ── FastAPI Backend ─────────────────────────────────────────
   backend:
     build:
-      context: ./backend
+      context: ./Backend
       dockerfile: Dockerfile
     container_name: labelguard-backend
     restart: unless-stopped
@@ -32,16 +44,40 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://labelguard:labelguard_dev@db:5432/labelguard_db
-      SECRET_KEY: docker_dev_secret_key_change_in_production
+      # DEBUG=true allows this placeholder key; set SECRET_KEY and DEBUG=false
+      # for anything reachable from the internet.
+      SECRET_KEY: ${SECRET_KEY:-docker_dev_secret_key_change_in_production}
+      DEBUG: ${DEBUG:-true}
       STORAGE_BACKEND: local
       LOCAL_STORAGE_PATH: /app/uploads
-      DEBUG: "true"
+      CORS_ORIGINS: '["http://localhost:8080","http://localhost:5173"]'
+      MAX_CONCURRENT_SCANS: ${MAX_CONCURRENT_SCANS:-1}
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
       - evidence_uploads:/app/uploads
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    mem_limit: 512m
+    # Schema and the 13 rules + product registry seed are idempotent, so this
+    # is safe on every start.
+    command: >
+      sh -c "alembic upgrade head &&
+             python -m app.scripts.seed_rules &&
+             python -m app.scripts.seed_product_registry &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1"
+
+  # ── Controller dashboard (static files behind nginx) ────────
+  dashboard:
+    build:
+      context: ./Frontend
+      args:
+        VITE_API_BASE: http://localhost:8000
+    container_name: labelguard-dashboard
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+    mem_limit: 64m
 
 volumes:
   pgdata:

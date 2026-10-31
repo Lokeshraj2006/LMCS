@@ -1,0 +1,16 @@
+# Keep the image small and free of local secrets and evidence.
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.env
+.env.*
+!.env.example
+uploads/
+evidence_store/
+generated_reports/
+labelguard.db*
+tests/

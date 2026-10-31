@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import settings
+from app.config import secret_key_problem, settings
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -27,6 +27,14 @@ async def lifespan(app: FastAPI):
         settings.app_version,
         settings.debug,
     )
+    # Anyone holding a placeholder key can mint admin tokens, so refuse to
+    # serve with one rather than warn.
+    problem = secret_key_problem(settings)
+    if problem:
+        raise RuntimeError(
+            f"{problem} Set a random SECRET_KEY in .env "
+            "(python -c \"import secrets; print(secrets.token_hex(32))\") or run with DEBUG=true."
+        )
     try:
         from app.database import Base, engine
         import app.models

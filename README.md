@@ -2,6 +2,8 @@
 
 **Smart India Hackathon 2026 · Problem statement SIH26034 · Team HexTech**
 
+[![CI](https://github.com/Lokeshraj2006/LMCS/actions/workflows/ci.yml/badge.svg)](https://github.com/Lokeshraj2006/LMCS/actions/workflows/ci.yml)
+
 Photograph the label of a packaged product. LMCS reads it, checks it against the
 **Legal Metrology (Packaged Commodities) Rules, 2011**, compares it with the
 registered product, saves the photo as tamper-evident evidence, and carries a
@@ -203,6 +205,34 @@ arrive at the same moment.
 | Dashboard | React 18, Vite 5, React Router, Leaflet / react-leaflet |
 | Maps | OpenStreetMap tiles |
 
+### Runs on CPU, cheaply
+
+No GPU and no ML framework anywhere. Label text and the barcode are read on
+the phone by Google ML Kit, so the server never runs OCR. The server's image
+work is classical OpenCV (headless build) and pyzbar.
+
+Measured with `python -m app.scripts.benchmark_scan` over the 53 stored
+evidence photos (2.1 MP median), on one core:
+
+| | |
+| --- | --- |
+| CPU time per photo | median **312 ms**, 95th percentile 375 ms |
+| Throughput | about **190 photos per CPU-minute** |
+| Fits on | 1 vCPU / 1 GB (the Docker stack is capped at 512 MB backend, 256 MB database, 64 MB dashboard) |
+
+To keep a small server steady under load:
+
+- `MAX_CONCURRENT_SCANS` (default: one per core) caps how many photos are
+  analysed at once; extra scans wait their turn instead of all competing for
+  the CPU and memory.
+- The scan endpoint runs in worker threads, so a scan being analysed never
+  stalls logins or dashboard requests.
+- `MAX_UPLOAD_MB` (default 15) refuses oversized photos before they are read
+  into memory; only JPEG, PNG and WebP are accepted.
+- A test (`tests/test_limits_and_cpu_only.py`) fails if a GPU or deep-learning
+  package (torch, tensorflow, paddle, easyocr, onnxruntime-gpu, …) or the
+  non-headless OpenCV build is ever added.
+
 ---
 
 ## Repository layout
@@ -210,7 +240,7 @@ arrive at the same moment.
 ```
 Backend/
   app/
-    core/            login tokens and role checks
+    core/            login tokens, role checks, upload / login / concurrency limits
     models/          database tables (users, evidence, rules, reports, notices, registry…)
     routers/         API: auth, scan, inspections, complaints, violations, rules, legal-notice
     schemas/         request and response shapes
@@ -239,7 +269,8 @@ mobile/
   android/           Android project (manifest, Gradle, icons)
   test/              flutter tests and real OCR fixtures
 
-docker-compose.yml   PostgreSQL and the API in containers (optional)
+docker-compose.yml   the whole stack in containers: database, API, dashboard
+.github/workflows/   CI: server tests (with PostgreSQL), app tests and analyzer, dashboard build
 ```
 
 ---
@@ -373,12 +404,28 @@ remove that flag from `org.gradle.jvmargs`.
 ## Tests
 
 ```bash
-cd Backend && python -m pytest tests/ -q     # 333 tests
-cd mobile  && flutter test                   # 97 tests
+cd Backend && python -m pytest tests/ -q     # 352 tests
+cd mobile  && flutter test                   # 100 tests
 ```
 
 Server tests run on in-memory SQLite. One test, two "Issue notice" clicks
-racing each other, needs PostgreSQL and is skipped without it.
+racing each other, needs PostgreSQL and is skipped without it. GitHub Actions
+runs all of these on every push, the race test included.
+
+---
+
+## Docker
+
+```bash
+docker compose up --build
+```
+
+This starts PostgreSQL, the API on `http://localhost:8000` (migrations and
+the rules and registry seeds run on each start) and the dashboard on
+`http://localhost:8080`. Create the first admin with the command at the top
+of `docker-compose.yml`. The compose file runs with `DEBUG=true` and a
+placeholder key; with `DEBUG=false` the server refuses to start until
+`SECRET_KEY` is a real random value.
 
 ---
 
@@ -436,6 +483,8 @@ The full, live reference is at `/docs` when the server runs.
 | Dashboard shows a blank page | Open `http://localhost:5173` (from `npm run dev`), not the file |
 | App says it can't reach the server | Re-run `adb reverse tcp:8000 tcp:8000`, or check the address in the app's Settings |
 | A scan is rejected with 401 | The login expired; sign in again |
+| Login says "Too many failed logins" | 5 wrong passwords for one account from one device lock it for 15 minutes (`LOGIN_MAX_FAILURES`, `LOGIN_LOCKOUT_MINUTES`); restarting the server also clears it |
+| Server won't start: "SECRET_KEY is still the example placeholder" | With `DEBUG=false` a real key is required; generate one with `python -c "import secrets; print(secrets.token_hex(32))"` |
 | Gradle: "Unable to establish loopback connection" | Create `C:\jtmp` (see the Windows note above) |
 | Gradle fails on JDK 24 or 25 | Use JDK 17 or 21 |
 | Checks 9–11 are always `REVIEW` | No barcode was found in the photo, so there was no scale; photograph the barcode flat and in focus |
