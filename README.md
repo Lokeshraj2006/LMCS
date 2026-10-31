@@ -1,10 +1,10 @@
 <div align="center">
 
-# LMCS: Legal Metrology Compliance Scanner
+# LMCS - Legal Metrology Compliance Scanner
 
-**Photograph a packaged product's label. LMCS checks it against the Legal Metrology
-(Packaged Commodities) Rules, 2011, cross-checks it with the registered product,
-and seals the photo as tamper-evident evidence.**
+**Take one photo of a packed product's label and LMCS tells you if the label follows the
+Legal Metrology (Packaged Commodities) Rules, 2011. It also checks the product against the
+registered details and keeps the photo safe as proof.**
 
 [![CI](https://github.com/Lokeshraj2006/LMCS/actions/workflows/ci.yml/badge.svg)](https://github.com/Lokeshraj2006/LMCS/actions/workflows/ci.yml)
 ![Flutter](https://img.shields.io/badge/app-Flutter-02569B?logo=flutter)
@@ -15,58 +15,60 @@ and seals the photo as tamper-evident evidence.**
 
 Smart India Hackathon 2026 · Problem statement **SIH26034** · Team **HexTech**
 
-<img src="assets/app.jpg" alt="The LMCS app: scanning a label, reviewing the filled-in fields, a compliant result, and the inspector's map" width="900">
+<img src="assets/app.jpg" alt="The LMCS app: scanning a label, checking the filled-in fields, a compliant result, and the inspector's map" width="900">
 
 </div>
 
 ## What it does
 
-- 📷 **One photo, 13 checks.** The phone reads the label (Google ML Kit, on the device) and the server checks maker, quantity, MRP, dates, customer care, font size and more.
-- 📏 **The barcode is a ruler.** An EAN-13 barcode is 37.29 mm wide, so letter height is measured in millimetres from an ordinary photo.
-- 🔎 **Registry cross-check.** The barcode pulls up the registered product. A raised MRP is flagged as tampering; a lower one is an allowed sticker.
-- 🔒 **Evidence that holds up.** Each photo gets a SHA-256 fingerprint, GPS and network time, and the dashboard re-checks the fingerprint every time it is viewed.
-- ⚖️ **Honest verdicts.** **Compliant**, **Needs review** or **Action needed**. If the photo can't settle a check it says REVIEW and a person decides, never a guessed pass.
-- 🏛️ **People decide.** A consumer's scan raises a complaint, an inspector files a report, and only the Controller confirms it and issues the GO notice. The server enforces this.
-- 🌐 **Tamil and English.** One tap switches the app's screens. Each scan's report PDF is made in the language the app is set to, with proper Tamil text shaping (long-press the Report button for the other language).
+- **One photo, 13 checks.** The phone reads the label by itself (Google ML Kit) and the server checks things like the maker's name, quantity, MRP, dates, customer care number and font size.
+- **Barcode as a ruler.** An EAN-13 barcode is always 37.29 mm wide, so we use it to measure how big the letters are, straight from a normal photo.
+- **Checks with the registry.** Using the barcode, we pull up the registered product details. If the printed MRP is more than the registered one, it is flagged as tampering. A sticker that lowers the MRP is allowed, so that one is fine.
+- **Proof that can't be changed.** Every photo gets a SHA-256 fingerprint along with GPS and internet time. The dashboard checks the fingerprint again every time someone opens it.
+- **No guessing.** Every scan ends as Compliant, Needs review or Action needed. If the photo is not clear enough to decide, it says REVIEW and a person checks the pack. It never passes something just like that.
+- **Officers take the final call.** A consumer's scan raises a complaint, the inspector files a report, and only the Controller can confirm it and send the GO notice. The server itself makes sure of this.
+- **Tamil and English.** One tap and the app switches to Tamil. The scan report PDF also comes in whatever language the app is set to (long press the Report button to get the other one).
 
 ## How it works
 
 ```mermaid
 flowchart LR
-    A["📷 Photo<br/>+ GPS + time"] --> B["Phone reads<br/>text + barcode"]
+    A["Photo<br/>+ GPS + time"] --> B["Phone reads<br/>text + barcode"]
     B --> C["User checks<br/>the fields"]
     C --> D["Server: seal evidence,<br/>13 rules, registry"]
     D --> E{"Verdict"}
-    E --> F["✅ Compliant"]
-    E --> G["🟠 Needs review"]
-    E --> H["🔴 Action needed"]
+    E --> F["Compliant"]
+    E --> G["Needs review"]
+    E --> H["Action needed"]
     H --> I["Inspector report"] --> J["Controller confirms"] --> K["GO notice PDF"]
 ```
 
 <div align="center">
 <img src="assets/dashboard.jpg" alt="The Controller's dashboard showing the rule catalogue with each rule's statutory provision" width="820">
-<br><sub>The Controller's dashboard: rule catalogue with statutory provisions and on/off switches</sub>
+<br><sub>The Controller's dashboard: all 13 rules with their legal provisions, each with an on/off switch</sub>
 </div>
 
 ## Built with
 
 | Part | Folder | Stack |
 | --- | --- | --- |
-| 📱 Mobile app (consumers, inspectors) | [`mobile/`](mobile/) | Flutter, Google ML Kit |
-| 🖥️ Server | [`Backend/`](Backend/) | FastAPI, PostgreSQL, OpenCV, pyzbar, ReportLab |
-| 📊 Dashboard (Controller) | [`Frontend/`](Frontend/) | React, Vite, Leaflet |
+| Mobile app (for consumers and inspectors) | [`mobile/`](mobile/) | Flutter, Google ML Kit |
+| Server | [`Backend/`](Backend/) | FastAPI, PostgreSQL, OpenCV, pyzbar, ReportLab, PyMuPDF |
+| Dashboard (for the Controller) | [`Frontend/`](Frontend/) | React, Vite, Leaflet |
 
-**Cheap to run:** no GPU and no ML framework. The server takes **0.31 s of CPU per photo** on one core (median over 53 real photos), so a 1 vCPU / 1 GB server is enough.
+**Cheap to run:** no GPU and no heavy AI model. The server takes around **0.31 seconds of CPU per photo** on a single core (median of 53 real photos), so a small 1 vCPU / 1 GB server is more than enough.
 
 ## Quick start
+
+If you have Docker, just run:
 
 ```bash
 docker compose up --build
 ```
 
-Dashboard at <http://localhost:8080>, API at <http://localhost:8000/docs>. Create the first admin with the command at the top of [`docker-compose.yml`](docker-compose.yml).
+The dashboard opens at <http://localhost:8080> and the API docs at <http://localhost:8000/docs>. To create the first admin, use the command given at the top of [`docker-compose.yml`](docker-compose.yml).
 
-Running each part by hand, building the Android app, and troubleshooting are in **[SETUP.md](SETUP.md)**.
+Want to run each part separately, or build the Android app? Everything is in **[SETUP.md](SETUP.md)**.
 
 ## Tests
 
@@ -75,13 +77,13 @@ cd Backend && python -m pytest tests/ -q     # 363 tests
 cd mobile  && flutter test                   # 108 tests
 ```
 
-GitHub Actions runs both, plus the dashboard build, on every push.
+GitHub Actions runs all of these, plus the dashboard build, every time we push.
 
 ## Learn more
 
-- **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)**: the 13 rules and their provisions, the registry check, why REVIEW is not a violation, and known limitations
-- **[SETUP.md](SETUP.md)**: full setup, accounts, API overview, troubleshooting
+- **[HOW_IT_WORKS.md](HOW_IT_WORKS.md)**: the 13 rules and their legal provisions, the registry check, why REVIEW is not a violation, and what it can't do yet
+- **[SETUP.md](SETUP.md)**: full setup, accounts, API list and troubleshooting
 
-> **Status:** working prototype, tested end to end on real packs. It is not a production deployment.
+> **Status:** This is a working prototype. We have tested it end to end on real packs, but it is not a production deployment yet.
 
 <div align="center"><sub>Team HexTech · Smart India Hackathon 2026</sub></div>
